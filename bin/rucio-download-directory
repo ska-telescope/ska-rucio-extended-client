@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+
+import argparse
+import configparser
+import logging
+import os
+
+from rucio_extended_client.common.exceptions import ArgumentError, ConfigError
+from rucio_extended_client.api.plan import DownloadPlan
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', help="path to configuration file", default="etc/config.ini", type=str)
+    parser.add_argument('-p', help="path to download plan", type=str)
+    parser.add_argument('-v', help="verbose?", action='store_true')
+    parser.add_argument('--dry-run', help="dry run?", action='store_true')
+    parser.add_argument('--did', help="did", type=str)
+    parser.add_argument('--scope', help="scope", type=str)
+    args = parser.parse_args()
+
+    if not args.scope:
+        raise ArgumentError("scope has not been set")
+    if not args.did:
+        raise ArgumentError("scope has not been set")
+    if args.p and not os.path.isfile(args.p):
+        raise ArgumentError("Plan given but path does not exist")
+    if not args.c or not os.path.isfile(args.c):
+        raise ArgumentError("Configuration file has not been set or does not exist")
+
+    config = configparser.ConfigParser()
+    config.read(args.c)
+    try:
+        root_suffix = config['general']['ROOT_SUFFIX']
+        path_delimiter = config['general']['PATH_DELIMITER']
+    except KeyError as e:
+        raise ConfigError("Key {} does not exist".format(e))
+
+    if args.v:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s [%(name)s] %(module)10s %(levelname)5s %(process)d\t%(message)s")
+    else:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s [%(name)s] %(module)10s %(levelname)5s %(process)d\t%(message)s")
+
+    if args.d:
+        plan = DownloadPlan.make_from_did(
+            did=args.did, scope=args.scope, root_suffix=root_suffix, path_delimiter=path_delimiter)
+    elif args.p:
+        plan = DownloadPlan.load(args.p)
+    else:
+        logging.critical("Neither a directory or plan has been specified!")
+        exit()
+
+    plan.describe()
+    plan.run(dry_run=args.dry_run)
