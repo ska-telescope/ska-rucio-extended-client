@@ -5,23 +5,27 @@ import configparser
 import logging
 import os
 
-from rucio_extended_client.common.exceptions import ArgumentError, ConfigError
+from dirhash import dirhash
+from rucio.client.didclient import DIDClient
+
+from rucio_extended_client.common.exceptions import ArgumentError, ConfigError, ChecksumVerificationError
 from rucio_extended_client.api.plan import DownloadPlan
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', help="path to configuration file", default="etc/config.ini", type=str)
+    parser.add_argument('-o', help="overwrite existing directory if it exists", action='store_true')
     parser.add_argument('-p', help="path to download plan", type=str)
     parser.add_argument('-v', help="verbose?", action='store_true')
     parser.add_argument('--dry-run', help="dry run?", action='store_true')
-    parser.add_argument('--did', help="did", type=str)
+    parser.add_argument('--name', help="name", type=str)
     parser.add_argument('--scope', help="scope", type=str)
     args = parser.parse_args()
 
     if not args.scope:
         raise ArgumentError("scope has not been set")
-    if not args.did:
+    if not args.name:
         raise ArgumentError("scope has not been set")
     if args.p and not os.path.isfile(args.p):
         raise ArgumentError("Plan given but path does not exist")
@@ -31,8 +35,9 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read(args.c)
     try:
-        root_suffix = config['general']['ROOT_SUFFIX']
+        metadata_plugin = config['general']['METADATA_PLUGIN']
         path_delimiter = config['general']['PATH_DELIMITER']
+        root_suffix = config['general']['ROOT_SUFFIX']
     except KeyError as e:
         raise ConfigError("Key {} does not exist".format(e))
 
@@ -45,14 +50,34 @@ if __name__ == "__main__":
             level=logging.INFO,
             format="%(asctime)s [%(name)s] %(module)10s %(levelname)5s %(process)d\t%(message)s")
 
-    if args.d:
-        plan = DownloadPlan.make_from_did(
-            did=args.did, scope=args.scope, root_suffix=root_suffix, path_delimiter=path_delimiter)
-    elif args.p:
+    if args.p:
         plan = DownloadPlan.load(args.p)
     else:
-        logging.critical("Neither a directory or plan has been specified!")
-        exit()
+        plan = DownloadPlan.make_plan_from_did(
+            root_container_scope=args.scope, root_container_name=args.name, fallback_root_suffix=root_suffix,
+            fallback_path_delimiter=path_delimiter, metadata_plugin=metadata_plugin, clobber=args.o,
+            show_tree=True)
 
     plan.describe()
     plan.run(dry_run=args.dry_run)
+
+    # verify directory checksum
+    did_client = DIDClient()
+
+    # Get metadata of root container
+    metadata = did_client.get_metadata(scope=args.scope, name=args.name, plugin=metadata_plugin)
+
+    # Check for dir_checksum key
+    if 'dir_checksum' in metadata:
+        logging.info("dir_checksum found in metadata, verifying checksum")
+        dir_checksum = metadata['dir_checksum']
+        this_dir_checksum = dirhash(args.name, algorithm='md5', empty_dirs=True)
+        try:
+            assert dir_checksum == this_dir_checksum
+        except AssertionError as e:
+            logging.critical("Checksum verification failed")
+            raise ChecksumVerificationError("Directory checksum does not match: {}!={}".format(
+                dir_checksum, this_dir_checksum))
+        logging.info("Checksum verification passed")
+    else:
+        logging.warning("dir_checksum not in container metadata, skipping checksum verification")

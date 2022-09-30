@@ -5,36 +5,40 @@
     <option name="openedFilesInfos">
       <list>
         <OpenedFileInfo>
-          <option name="caretOffset" value="50" />
+          <option name="caretOffset" value="73" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/etc/config.ini" />
-        </OpenedFileInfo>
-        <OpenedFileInfo>
-          <option name="caretOffset" value="439" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/src/rucio_extended_client/common/exceptions.py" />
         </OpenedFileInfo>
         <OpenedFileInfo>
           <option name="caretOffset" value="32" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/src/__init__.py" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="21" />
+          <option name="caretOffset" value="51" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/requirements.txt" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="1218" />
+          <option name="caretOffset" value="2824" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/bin/rucio-upload-directory" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="5100" />
+          <option name="caretOffset" value="158" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/bin/rucio-download-directory" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="129" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/src/rucio_extended_client/api/plan.py" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="83" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/README.md" />
+          <option name="caretOffset" value="229" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/src/rucio_extended_client/api/step.py" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="0" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/bin/rucio-download-directory" />
+          <option name="caretOffset" value="166" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/src/rucio_extended_client/common/exceptions.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="742" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/README.md" />
         </OpenedFileInfo>
       </list>
     </option>

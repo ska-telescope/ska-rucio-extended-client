@@ -1,1 +1,3 @@
+dirhash==0.2.1
 rucio-clients==1.29.0
+treelib==1.6.1
