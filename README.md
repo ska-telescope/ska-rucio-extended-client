@@ -46,7 +46,7 @@ Additional functionality provided by this package includes:
 ### rucio-upload-directory: upload a multi-level directory
 
 ```bash
-eng@ubuntu:~/SKAO/ska-rucio-extended-client/bin$ tree ../test/1/
+eng@ubuntu:~/SKAO/ska-rucio-extended-client$ tree test/data/dummy_directory
 ../test/1/
 ├── d1
 │    ├── d1_d1
@@ -66,7 +66,7 @@ eng@ubuntu:~/SKAO/ska-rucio-extended-client/bin$ tree ../test/1/
 ```
 
 ```bash
-[user@f5945aba3d52 bin]$ python3 rucio-upload-directory --lifetime=76200 --rse STFC_STORM --scope hierarchy_tests -d ../test/1 -c ../etc/config.ini -n test_upload
+[user@f5945aba3d52 rucio-extended-client]$ rucio-upload-directory --lifetime=76200 --rse STFC_STORM --scope hierarchy_tests -d test/data/dummy_directory -n test_upload
 
 Plan Description
 ================
@@ -74,29 +74,29 @@ Plan Description
 0: (create_collections) RUN function DIDClient.add_container.rucio.client.didclient with parameters {'scope': 'hierarchy_tests', 'name': 'test_upload', 'lifetime': 76200}
 1: (create_collections) RUN function DIDClient.add_dataset.rucio.client.didclient with parameters {'scope': 'hierarchy_tests', 'name': 'test_upload__root', 'lifetime': 76200}
 2: (create_attachments) RUN function DIDClient.add_datasets_to_containers.rucio.client.didclient with parameters {'attachments': [{'scope': 'hierarchy_tests', 'name': 'test_upload', 'dids': [{'scope': 'hierarchy_tests', 'name': 'test_upload__root'}]}]}
-3: (upload_files) RUN function UploadClient.upload.rucio.client.uploadclient with parameters {'items': [{'path': '../test/1/f2', 'rse': 'STFC_STORM', 'did_scope': 'hierarchy_tests', 'did_name': 'test_upload.f2', 'dataset_scope': 'hierarchy_tests', 'dataset_name': 'test_upload__root', 'register_after_upload': True}, {'path': '../test/1/f1', 'rse': 'STFC_STORM', 'did_scope': 'hierarchy_tests', 'did_name': 'test_upload.f1', 'dataset_scope': 'hierarchy_tests', 'dataset_name': 'test_upload__root', 'register_after_upload': True}]}
+3: (upload_files) RUN function UploadClient.upload.rucio.client.uploadclient with parameters {'items': [{'path': 'test/data/dummy_directory/f2', 'rse': 'STFC_STORM', 'did_scope': 'hierarchy_tests', 'did_name': 'test_upload.f2', 'dataset_scope': 'hierarchy_tests', 'dataset_name': 'test_upload__root', 'register_after_upload': True}, {'path': '../test/1/f1', 'rse': 'STFC_STORM', 'did_scope': 'hierarchy_tests', 'did_name': 'test_upload.f1', 'dataset_scope': 'hierarchy_tests', 'dataset_name': 'test_upload__root', 'register_after_upload': True}]}
 4: (create_collections) RUN function DIDClient.add_container.rucio.client.didclient with parameters {'scope': 'hierarchy_tests', 'name': 'test_upload.d4', 'lifetime': 76200}
 5: (create_attachments) RUN function DIDClient.add_containers_to_containers.rucio.client.didclient with parameters {'attachments': [{'scope': 'hierarchy_tests', 'name': 'test_upload', 'dids': [{'scope': 'hierarchy_tests', 'name': 'test_upload.d4'}]}]}
 6: (create_collections) RUN function DIDClient.add_container.rucio.client.didclient with parameters {'scope': 'hierarchy_tests', 'name': 'test_upload.d4.d4_d1', 'lifetime': 76200}
 7: (create_attachments) RUN function DIDClient.add_containers_to_containers.rucio.client.didclient with parameters {'attachments': [{'scope': 'hierarchy_tests', 'name': 'test_upload.d4', 'dids': [{'scope': 'hierarchy_tests', 'name': 'test_upload.d4.d4_d1'}]}]}
 8: (create_collections) RUN function DIDClient.add_dataset.rucio.client.didclient with parameters {'scope': 'hierarchy_tests', 'name': 'test_upload.d3', 'lifetime': 76200}
 9: (create_attachments) RUN function DIDClient.add_datasets_to_containers.rucio.client.didclient with parameters {'attachments': [{'scope': 'hierarchy_tests', 'name': 'test_upload', 'dids': [{'scope': 'hierarchy_tests', 'name': 'test_upload.d3'}]}]}
-10: (upload_files) RUN function UploadClient.upload.rucio.client.uploadclient with parameters {'items': [{'path': '../test/1/d3/d3_f1', 'rse': 'STFC_STORM', 'did_scope': 'hierarchy_tests', 'did_name': 'test_upload.d3.d3_f1', 'dataset_scope': 'hierarchy_tests', 'dataset_name': 'test_upload.d3', 'register_after_upload': True}]}
+10: (upload_files) RUN function UploadClient.upload.rucio.client.uploadclient with parameters {'items': [{'path': 'test/data/dummy_directory/d3/d3_f1', 'rse': 'STFC_STORM', 'did_scope': 'hierarchy_tests', 'did_name': 'test_upload.d3.d3_f1', 'dataset_scope': 'hierarchy_tests', 'dataset_name': 'test_upload.d3', 'register_after_upload': True}]}
 11: (create_collections) RUN function DIDClient.add_container.rucio.client.didclient with parameters {'scope': 'hierarchy_tests', 'name': 'test_upload.d1', 'lifetime': 76200}
 12: (create_collections) RUN function DIDClient.add_dataset.rucio.client.didclient with parameters {'scope': 'hierarchy_tests', 'name': 'test_upload.d1__root', 'lifetime': 76200}
 13: (create_attachments) RUN function DIDClient.add_datasets_to_containers.rucio.client.didclient with parameters {'attachments': [{'scope': 'hierarchy_tests', 'name': 'test_upload.d1', 'dids': [{'scope': 'hierarchy_tests', 'name': 'test_upload.d1__root'}]}]}
 14: (create_attachments) RUN function DIDClient.add_containers_to_containers.rucio.client.didclient with parameters {'attachments': [{'scope': 'hierarchy_tests', 'name': 'test_upload', 'dids': [{'scope': 'hierarchy_tests', 'name': 'test_upload.d1'}]}]}
-15: (upload_files) RUN function UploadClient.upload.rucio.client.uploadclient with parameters {'items': [{'path': '../test/1/d1/d1_f2', 'rse': 'STFC_STORM', 'did_scope': 'hierarchy_tests', 'did_name': 'test_upload.d1.d1_f2', 'dataset_scope': 'hierarchy_tests', 'dataset_name': 'test_upload.d1__root', 'register_after_upload': True}, {'path': '../test/1/d1/d1_f1', 'rse': 'STFC_STORM', 'did_scope': 'hierarchy_tests', 'did_name': 'test_upload.d1.d1_f1', 'dataset_scope': 'hierarchy_tests', 'dataset_name': 'test_upload.d1__root', 'register_after_upload': True}]}
+15: (upload_files) RUN function UploadClient.upload.rucio.client.uploadclient with parameters {'items': [{'path': 'test/data/dummy_directory/d1/d1_f2', 'rse': 'STFC_STORM', 'did_scope': 'hierarchy_tests', 'did_name': 'test_upload.d1.d1_f2', 'dataset_scope': 'hierarchy_tests', 'dataset_name': 'test_upload.d1__root', 'register_after_upload': True}, {'path': '../test/1/d1/d1_f1', 'rse': 'STFC_STORM', 'did_scope': 'hierarchy_tests', 'did_name': 'test_upload.d1.d1_f1', 'dataset_scope': 'hierarchy_tests', 'dataset_name': 'test_upload.d1__root', 'register_after_upload': True}]}
 16: (create_collections) RUN function DIDClient.add_dataset.rucio.client.didclient with parameters {'scope': 'hierarchy_tests', 'name': 'test_upload.d1.d1_d1', 'lifetime': 76200}
 17: (create_attachments) RUN function DIDClient.add_datasets_to_containers.rucio.client.didclient with parameters {'attachments': [{'scope': 'hierarchy_tests', 'name': 'test_upload.d1', 'dids': [{'scope': 'hierarchy_tests', 'name': 'test_upload.d1.d1_d1'}]}]}
-18: (upload_files) RUN function UploadClient.upload.rucio.client.uploadclient with parameters {'items': [{'path': '../test/1/d1/d1_d1/d1_d1_f1', 'rse': 'STFC_STORM', 'did_scope': 'hierarchy_tests', 'did_name': 'test_upload.d1.d1_d1.d1_d1_f1', 'dataset_scope': 'hierarchy_tests', 'dataset_name': 'test_upload.d1.d1_d1', 'register_after_upload': True}]}
+18: (upload_files) RUN function UploadClient.upload.rucio.client.uploadclient with parameters {'items': [{'path': 'test/data/dummy_directory/d1/d1_d1/d1_d1_f1', 'rse': 'STFC_STORM', 'did_scope': 'hierarchy_tests', 'did_name': 'test_upload.d1.d1_d1.d1_d1_f1', 'dataset_scope': 'hierarchy_tests', 'dataset_name': 'test_upload.d1.d1_d1', 'register_after_upload': True}]}
 19: (create_collections) RUN function DIDClient.add_container.rucio.client.didclient with parameters {'scope': 'hierarchy_tests', 'name': 'test_upload.d5', 'lifetime': 76200}
 20: (create_attachments) RUN function DIDClient.add_containers_to_containers.rucio.client.didclient with parameters {'attachments': [{'scope': 'hierarchy_tests', 'name': 'test_upload', 'dids': [{'scope': 'hierarchy_tests', 'name': 'test_upload.d5'}]}]}
 21: (create_collections) RUN function DIDClient.add_container.rucio.client.didclient with parameters {'scope': 'hierarchy_tests', 'name': 'test_upload.d2', 'lifetime': 76200}
 22: (create_attachments) RUN function DIDClient.add_containers_to_containers.rucio.client.didclient with parameters {'attachments': [{'scope': 'hierarchy_tests', 'name': 'test_upload', 'dids': [{'scope': 'hierarchy_tests', 'name': 'test_upload.d2'}]}]}
 23: (create_collections) RUN function DIDClient.add_dataset.rucio.client.didclient with parameters {'scope': 'hierarchy_tests', 'name': 'test_upload.d2.d2_d1', 'lifetime': 76200}
 24: (create_attachments) RUN function DIDClient.add_datasets_to_containers.rucio.client.didclient with parameters {'attachments': [{'scope': 'hierarchy_tests', 'name': 'test_upload.d2', 'dids': [{'scope': 'hierarchy_tests', 'name': 'test_upload.d2.d2_d1'}]}]}
-25: (upload_files) RUN function UploadClient.upload.rucio.client.uploadclient with parameters {'items': [{'path': '../test/1/d2/d2_d1/d2_d1_f1', 'rse': 'STFC_STORM', 'did_scope': 'hierarchy_tests', 'did_name': 'test_upload.d2.d2_d1.d2_d1_f1', 'dataset_scope': 'hierarchy_tests', 'dataset_name': 'test_upload.d2.d2_d1', 'register_after_upload': True}]}
+25: (upload_files) RUN function UploadClient.upload.rucio.client.uploadclient with parameters {'items': [{'path': 'test/data/dummy_directory/d2/d2_d1/d2_d1_f1', 'rse': 'STFC_STORM', 'did_scope': 'hierarchy_tests', 'did_name': 'test_upload.d2.d2_d1.d2_d1_f1', 'dataset_scope': 'hierarchy_tests', 'dataset_name': 'test_upload.d2.d2_d1', 'register_after_upload': True}]}
 26: (add_metadata) RUN function DIDClient.set_metadata.rucio.client.didclient with parameters {'scope': 'hierarchy_tests', 'name': 'test_upload', 'key': 'dir_checksum', 'value': 'd699da7005d41868c6e43f9190f243f0'}
 27: (add_metadata) RUN function DIDClient.set_metadata.rucio.client.didclient with parameters {'scope': 'hierarchy_tests', 'name': 'test_upload', 'key': 'root_suffix', 'value': '__root'}
 28: (add_metadata) RUN function DIDClient.set_metadata.rucio.client.didclient with parameters {'scope': 'hierarchy_tests', 'name': 'test_upload', 'key': 'path_delimiter', 'value': '.'}
@@ -143,7 +143,7 @@ Plan Description
 ### rucio-download-directory: download a multi-level directory
 
 ```bash
-[user@f5945aba3d52 bin]$ python3 rucio-download-directory --name test_upload --scope hierarchy_tests -c ../etc/config.ini
+[user@f5945aba3d52 rucio-extended-client]$ rucio-download-directory --name test_upload --scope hierarchy_tests
 2022-09-30 16:09:05,310 [root]       plan  INFO 636	root_suffix found in metadata (__root)
 2022-09-30 16:09:05,310 [root]       plan  INFO 636	path_delimiter found in metadata (.)
 

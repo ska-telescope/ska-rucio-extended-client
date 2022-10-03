@@ -9,6 +9,8 @@ COPY . /opt/rucio-extended-client
 
 RUN cd /opt/rucio-extended-client && python3 -m pip install -e .
 
+RUN ln -s /opt/rucio-extended-client/etc/config.ini /usr/local/etc/config.ini
+
 USER user
 
 WORKDIR /opt/rucio-extended-client

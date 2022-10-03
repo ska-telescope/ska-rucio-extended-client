@@ -5,40 +5,44 @@
     <option name="openedFilesInfos">
       <list>
         <OpenedFileInfo>
-          <option name="caretOffset" value="1996" />
+          <option name="caretOffset" value="89" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/requirements.txt" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="448" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/test/unittests/test_upload.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="2656" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/bin/rucio-upload-directory" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="9477" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/src/rucio_extended_client/api/plan.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="0" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/src/rucio_extended_client/api/step.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="2466" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/README.md" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="0" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/Dockerfile" />
-        </OpenedFileInfo>
-        <OpenedFileInfo>
-          <option name="caretOffset" value="727" />
+          <option name="caretOffset" value="510" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/setup.py" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="0" />
+          <option name="caretOffset" value="483" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/bin/rucio-download-directory" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="353" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/LICENSE" />
-        </OpenedFileInfo>
-        <OpenedFileInfo>
-          <option name="caretOffset" value="344" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/Makefile" />
-        </OpenedFileInfo>
-        <OpenedFileInfo>
-          <option name="caretOffset" value="266" />
+          <option name="caretOffset" value="298" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/Dockerfile.dev" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="217" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/test/data/unittests/run_unittests.sh" />
-        </OpenedFileInfo>
-        <OpenedFileInfo>
-          <option name="caretOffset" value="205" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/.gitlab-ci.yml" />
+          <option name="caretOffset" value="2570" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/test/unittests/test_download.py" />
         </OpenedFileInfo>
       </list>
     </option>
