@@ -1,2 +1,0 @@
-import rucio_extended_client.api
-import rucio_extended_client.common

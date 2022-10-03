@@ -1,35 +1,47 @@
 # ska-rucio-extended-client
 
-## Install
+## Usage
 
-### Local development via pip w/ symlinks
-
-Start a client container:
+This package can be installed locally via pip, e.g. to install and authenticate as a user with account `$ACCOUNT` via OIDC:
 
 ```bash
-eng@ubuntu:~$ docker run -it -v ~/SKAO/ska-rucio-extended-client:/home/user/ska-rucio-extended-client registry.gitlab.com/ska-telescope/src/ska-rucio-client:release-1.29.0
+eng@ubuntu:~/SKAO/ska-rucio-extended-client$ export PYTHONWARNINGS="ignore:Unverified HTTPS request" && export LANG="en_US.UTF-8"
+eng@ubuntu:~/SKAO/ska-rucio-extended-client$ python3 -m pip install .
+eng@ubuntu:~/SKAO/ska-rucio-extended-client$ sed -c -i "s/\(account *= *\).*/\1$ACCOUNT/" /opt/rucio/etc/rucio.cfg
+eng@ubuntu:~/SKAO/ska-rucio-extended-client$ rucio whoami
 ```
 
-Next, authenticate with rucio (replace your account name) and install the extended client package using symlinks:
+Alternatively, a Dockerfile is provided to build an image (Makefile target included) with the package pre-installed:
 
 ```bash
-[user@af38271f5e57 ~]$ sed -c -i "s/\(account *= *\).*/\1robbarnsley/" /opt/rucio/etc/rucio.cfg && rucio whoami && cd ska-rucio-extended-client/ && python3 -m pip install -e .
+eng@ubuntu:~/SKAO/ska-rucio-extended-client$ make image
+eng@ubuntu:~/SKAO/ska-rucio-extended-client$ docker run -it --rm -e PYTHONWARNINGS="ignore:Unverified HTTPS request" -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=$ACCOUNT rucio-extended-client:`cat BASE_RUCIO_CLIENT_TAG`
+[root@7021ab386a0f user]# rucio whoami
 ```
 
-Set some environment variables:
+Or use a pre-built image at the container registry [here](https://gitlab.com/ska-telescope/src/ska-rucio-extended-client/container_registry).
+
+### Local development (containerised via pip w/ symlinks)
+
+For development, create a new `devel` container with the source from the host volume mounted in, e.g. for a path `/home/eng/SKAO/ska-rucio-extended-client`:
 
 ```bash
-
-[user@af38271f5e57 ~]$ export PYTHONWARNINGS="ignore:Unverified HTTPS request" && export LANG="en_US.UTF-8"
+eng@ubuntu:~/SKAO/ska-rucio-extended-client$ make image-devel
+eng@ubuntu:~/SKAO/ska-rucio-extended-client$ docker run -it --rm -e PYTHONWARNINGS="ignore:Unverified HTTPS request" -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=$ACCOUNT -v /home/eng/SKAO/ska-rucio-extended-client:/opt/rucio-extended-client rucio-extended-client:`cat BASE_RUCIO_CLIENT_TAG`-devel
 ```
 
-Run:
+And authenticate as usual:
 
-```
-[user@2cad4b56ee57 bin]$ python3 rucio-download-directory --name test --scope hierarchy_tests -c ../etc/config.ini --dry-run
+```bash
+[root@7021ab386a0f user]# rucio whoami 
 ```
 
-## Functions
+## Functionality
+
+Additional functionality provided by this package includes:
+
+- `rucio-upload-directory`: upload a multi-level directory
+- `rucio-download-directory`: download a multi-level directory (previously uploaded with `rucio-upload-directory`) 
 
 ### rucio-upload-directory: upload a multi-level directory
 
