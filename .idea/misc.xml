@@ -29,8 +29,8 @@
           <option name="fileUrl" value="file://$PROJECT_DIR$/.gitignore" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="569" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/.gitlab-ci.yml" />
+          <option name="caretOffset" value="310" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/Dockerfile.dev" />
         </OpenedFileInfo>
         <OpenedFileInfo>
           <option name="caretOffset" value="0" />
@@ -42,7 +42,7 @@
         </OpenedFileInfo>
         <OpenedFileInfo>
           <option name="caretOffset" value="0" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/Dockerfile.dev" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/.gitlab-ci.yml" />
         </OpenedFileInfo>
       </list>
     </option>
