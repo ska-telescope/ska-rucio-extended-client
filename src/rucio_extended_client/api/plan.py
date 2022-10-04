@@ -50,8 +50,7 @@ class Plan:
     def sections(self):
         sections = set()
         for step in self.steps:
-            section_name, _, _ = step
-            sections.add(section_name)
+            sections.add(step.section_name)
         return sections
 
     def append_step(self, section_name: str, fqn: str, arguments: typing.Dict[typing.Any, typing.Any] = {},
@@ -81,14 +80,14 @@ class Plan:
             section_name, fqn, arguments, is_done = (step.section_name, step.fqn, step.arguments, step.is_done)
             if not is_done:
                 if hasattr(step.fqn, '__self__'): # bound method
-                    print("{}: ({}) RUN function {}.{}.{} with parameters {}".format(
+                    print("{}: ({}) RUN bound method {}.{}.{} with parameters {}".format(
                         idx, section_name, fqn.__self__.__class__.__name__, fqn.__name__, fqn.__module__, arguments))
                 else:
                     print("{}: ({}) RUN function {}.{} with parameters {}".format(
                         idx, section_name, fqn.__module__, fqn.__name__, arguments))
             else:
                 if hasattr(step.fqn, '__self__'):  # bound method
-                    print("{}: ({}) RAN function {}.{}.{} with parameters {}".format(
+                    print("{}: ({}) RAN bound method {}.{}.{} with parameters {}".format(
                         idx, section_name, fqn.__self__.__class__.__name__, fqn.__name__, fqn.__module__, arguments))
                 else:
                     print("{}: ({}) RAN function {}.{} with parameters {}".format(
@@ -217,14 +216,17 @@ class DownloadPlan(Plan):
         super().__init__(root_suffix, path_delimiter)
 
     def _add_steps_from_tree(
-            self, tree: typing.Type[Tree], collections: typing.List[typing.Dict[typing.Any, typing.Any]]) -> None:
+            self, tree: typing.Type[Tree], collections: typing.List[typing.Dict[typing.Any, typing.Any]],
+            mock: bool = False) -> None:
         """ Add plan steps from a graph.
 
         :param tree: the tree of relationships between DIDs
         :param collections: a list of collections contained within the root container
+        :param mock: only use for pytests (doesn't instantiate clients)
         """
-        did_client = DIDClient()
-        download_client = DownloadClient()
+        download_client = DownloadClient
+        if not mock:
+            download_client = download_client() # instantiate
 
         did_items = []
         for logical_path_segments in tree.paths_to_leaves():
@@ -374,7 +376,7 @@ class DownloadPlan(Plan):
     def make_plan_from_did(
             cls, root_container_scope: str, root_container_name: str, fallback_root_suffix: str ='__root',
             fallback_path_delimiter: str ='.', metadata_plugin: str = 'json', clobber: bool = True,
-            show_tree: bool = True,) -> typing.Type[Plan]:
+            show_tree: bool = True) -> typing.Type[Plan]:
         """ Makes a download plan given the DID of a root container and according to the rules of the UploadPlan.
 
         :param root_container_scope: the scope of the root container
@@ -386,7 +388,8 @@ class DownloadPlan(Plan):
         :param show_tree: show the hierarchical tree when constructing the plan
         :return: a populated instance of DownloadPlan
         """
-        did_client = DIDClient()
+        did_client = DIDClient
+        did_client = did_client()
 
         # Get metadata of root container
         metadata = did_client.get_metadata(
@@ -441,7 +444,7 @@ class UploadPlan(Plan):
     @classmethod
     def make_plan_from_directory(
             cls, root_directory: str, root_container_name: str, rse: str, scope: str, lifetime: int,
-            root_suffix: str = '__root', path_delimiter: str = '.') -> typing.Type[Plan]:
+            root_suffix: str = '__root', path_delimiter: str = '.', mock: bool = False) -> typing.Type[Plan]:
         """
 
         Makes a new plan with steps created according to the following rules:
@@ -458,12 +461,17 @@ class UploadPlan(Plan):
         :param lifetime: the lifetime of uploaded content
         :param root_suffix: suffix to define that the file belongs to the base directory
         :param path_delimiter: delimiter used to separate directories and files
+        :param mock: only use for pytests (doesn't instantiate clients)
         :return: a populated instance of UploadPlan
         """
         st = time.time()
         plan = cls(root_suffix, path_delimiter)
-        upload_client = UploadClient()
-        did_client = DIDClient()
+
+        upload_client = UploadClient
+        did_client = DIDClient
+        if not mock:                         # instantiate
+            upload_client = upload_client()
+            did_client = did_client()
         try:
             for idx, (root, dirs, files) in enumerate(os.walk(root_directory, topdown=True)):
                 logging.debug("Considering directory {}".format(root))
