@@ -11,9 +11,8 @@ test:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
   script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build . -f Dockerfile.dev --build-arg BASE_RUCIO_CLIENT_IMAGE=registry.gitlab.com/ska-telescope/src/ska-rucio-client --build-arg BASE_RUCIO_CLIENT_TAG=$(cat BASE_RUCIO_CLIENT_TAG) --tag $CI_REGISTRY_IMAGE:$(cat BASE_RUCIO_CLIENT_TAG)
-    - docker run -t --rm $CI_REGISTRY_IMAGE:$(cat BASE_RUCIO_CLIENT_TAG) /opt/rucio-extended-client/test/run_unittests.sh
+    - docker build . -f Dockerfile.dev --build-arg BASE_RUCIO_CLIENT_IMAGE=registry.gitlab.com/ska-telescope/src/ska-rucio-client --build-arg BASE_RUCIO_CLIENT_TAG=$(cat BASE_RUCIO_CLIENT_TAG) --tag registry.gitlab.com/ska-telescope/src/ska-rucio-extended-client:$(cat BASE_RUCIO_CLIENT_TAG)
+    - docker run -t --rm registry.gitlab.com/ska-telescope/src/ska-rucio-extended-client:$(cat BASE_RUCIO_CLIENT_TAG) test/run_unittests.sh
 
 push:
   image: docker:dind
@@ -24,5 +23,5 @@ push:
     - test
   script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build . -f Dockerfile --build-arg BASE_RUCIO_CLIENT_IMAGE=registry.gitlab.com/ska-telescope/src/ska-rucio-client --build-arg BASE_RUCIO_CLIENT_TAG=$(cat BASE_RUCIO_CLIENT_TAG) --tag $CI_REGISTRY_IMAGE:$(cat BASE_RUCIO_CLIENT_TAG)
-    - docker push $CI_REGISTRY_IMAGE:$(cat BASE_RUCIO_CLIENT_TAG)
+    - docker build . -f Dockerfile --build-arg BASE_RUCIO_CLIENT_IMAGE=registry.gitlab.com/ska-telescope/src/ska-rucio-client --build-arg BASE_RUCIO_CLIENT_TAG=$(cat BASE_RUCIO_CLIENT_TAG) --tag registry.gitlab.com/ska-telescope/src/ska-rucio-extended-client:$(cat BASE_RUCIO_CLIENT_TAG)
+    - docker push registry.gitlab.com/ska-telescope/src/ska-rucio-extended-client:$(cat BASE_RUCIO_CLIENT_TAG)

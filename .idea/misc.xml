@@ -41,8 +41,12 @@
           <option name="fileUrl" value="file://$PROJECT_DIR$/LICENSE" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="0" />
+          <option name="caretOffset" value="575" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/.gitlab-ci.yml" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="0" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/Makefile" />
         </OpenedFileInfo>
       </list>
     </option>
