@@ -5,7 +5,7 @@ stages:
 - test
 - push
 
-build:
+test:
   image: docker:dind
   stage: test
   rules:
