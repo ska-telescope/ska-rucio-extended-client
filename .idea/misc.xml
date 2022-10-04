@@ -5,14 +5,6 @@
     <option name="openedFilesInfos">
       <list>
         <OpenedFileInfo>
-          <option name="caretOffset" value="89" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/requirements.txt" />
-        </OpenedFileInfo>
-        <OpenedFileInfo>
-          <option name="caretOffset" value="448" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/test/unittests/test_upload.py" />
-        </OpenedFileInfo>
-        <OpenedFileInfo>
           <option name="caretOffset" value="9477" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/src/rucio_extended_client/api/plan.py" />
         </OpenedFileInfo>
@@ -37,8 +29,20 @@
           <option name="fileUrl" value="file://$PROJECT_DIR$/.gitignore" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="0" />
+          <option name="caretOffset" value="569" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/.gitlab-ci.yml" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="0" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/Dockerfile" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="0" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/LICENSE" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="0" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/Dockerfile.dev" />
         </OpenedFileInfo>
       </list>
     </option>
