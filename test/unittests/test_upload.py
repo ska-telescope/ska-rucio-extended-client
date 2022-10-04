@@ -19,9 +19,9 @@ class TestUploadFolder:
         self.plan.describe()
         for section in self.plan.sections:
             if section == 'create_collections':
-                assert len([step for step in self.plan.steps if step.section_name == section]) == 11
+                assert len([step for step in self.plan.steps if step.section_name == section]) == 8
             elif section == 'create_attachments':
-                assert len([step for step in self.plan.steps if step.section_name == section]) == 10
+                assert len([step for step in self.plan.steps if step.section_name == section]) == 7
             elif section == 'add_metadata':
                 assert len([step for step in self.plan.steps if step.section_name == section]) == 3
 
