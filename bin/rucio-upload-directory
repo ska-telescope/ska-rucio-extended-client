@@ -11,7 +11,7 @@ from rucio_extended_client.api.plan import UploadPlan
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', help="path to configuration file", default="etc/config.ini", type=str)
+    parser.add_argument('-c', help="path to configuration file", default="/usr/local/etc/config.ini", type=str)
     parser.add_argument('-d', help="directory to upload", type=str)
     parser.add_argument('-n', help="root container name of upload", type=str)
     parser.add_argument('-p', help="path to upload plan", type=str)
