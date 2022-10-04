@@ -18,7 +18,7 @@ push:
   image: docker:dind
   stage: push
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_REF_NAME == "main"'
+    - if: '$CI_PIPELINE_SOURCE == "push"'
   needs:
     - test
   script:
