@@ -8,7 +8,7 @@ image-devel:
 	--build-arg BASE_RUCIO_CLIENT_TAG=$(BASE_RUCIO_CLIENT_TAG) --tag rucio-extended-client:$(BASE_RUCIO_CLIENT_TAG)-devel
 
 image-test:
-	docker build . -f Dockerfile --build-arg BASE_RUCIO_CLIENT_IMAGE=registry.gitlab.com/ska-telescope/src/ska-rucio-client \
+	docker build . -f Dockerfile.dev --build-arg BASE_RUCIO_CLIENT_IMAGE=registry.gitlab.com/ska-telescope/src/ska-rucio-client \
 	--build-arg BASE_RUCIO_CLIENT_TAG=$(BASE_RUCIO_CLIENT_TAG) --tag rucio-extended-client:$(BASE_RUCIO_CLIENT_TAG)-test
 
 run-tests: image-test

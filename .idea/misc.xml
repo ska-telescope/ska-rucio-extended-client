@@ -5,7 +5,7 @@
     <option name="openedFilesInfos">
       <list>
         <OpenedFileInfo>
-          <option name="caretOffset" value="2466" />
+          <option name="caretOffset" value="2288" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/README.md" />
         </OpenedFileInfo>
         <OpenedFileInfo>
@@ -17,7 +17,7 @@
           <option name="fileUrl" value="file://$PROJECT_DIR$/.gitignore" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="310" />
+          <option name="caretOffset" value="131" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/Dockerfile.dev" />
         </OpenedFileInfo>
         <OpenedFileInfo>
@@ -33,7 +33,7 @@
           <option name="fileUrl" value="file://$PROJECT_DIR$/.gitlab-ci.yml" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="50" />
+          <option name="caretOffset" value="810" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/Makefile" />
         </OpenedFileInfo>
         <OpenedFileInfo>
@@ -41,7 +41,7 @@
           <option name="fileUrl" value="file://$PROJECT_DIR$/test/run_unittests.sh" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="895" />
+          <option name="caretOffset" value="1823" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/test/unittests/test_upload.py" />
         </OpenedFileInfo>
       </list>

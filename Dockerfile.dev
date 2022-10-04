@@ -5,6 +5,8 @@ FROM $BASE_RUCIO_CLIENT_IMAGE:$BASE_RUCIO_CLIENT_TAG
 
 USER root
 
+RUN yum -y install tree
+
 COPY . /opt/rucio-extended-client
 
 RUN cd /opt/rucio-extended-client && python3 -m pip install -e .
