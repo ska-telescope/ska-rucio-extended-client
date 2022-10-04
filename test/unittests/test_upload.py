@@ -23,4 +23,5 @@ class TestUploadFolder:
                 assert len([step for step in self.plan.steps if step.section_name == section]) == 10
             elif section == 'add_metadata':
                 assert len([step for step in self.plan.steps if step.section_name == section]) == 3
+        self.plan.describe()
 
