@@ -29,20 +29,20 @@
           <option name="fileUrl" value="file://$PROJECT_DIR$/LICENSE" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="575" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/.gitlab-ci.yml" />
-        </OpenedFileInfo>
-        <OpenedFileInfo>
           <option name="caretOffset" value="810" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/Makefile" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="1823" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/test/unittests/test_upload.py" />
         </OpenedFileInfo>
         <OpenedFileInfo>
           <option name="caretOffset" value="66" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/test/run_unittests.sh" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="1823" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/test/unittests/test_upload.py" />
+          <option name="caretOffset" value="575" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/.gitlab-ci.yml" />
         </OpenedFileInfo>
       </list>
     </option>
