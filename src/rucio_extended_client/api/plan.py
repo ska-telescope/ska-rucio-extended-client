@@ -135,6 +135,7 @@ class Plan:
                     return
             except Exception as e:
                 logging.critical("Encountered exception running step {}: {}".format(self.current_step_number, repr(e)))
+                self.save("plan-dump.json")
                 exit()
             step.is_done = True
         return returns
@@ -432,8 +433,7 @@ class DownloadPlan(Plan):
             plan._add_steps_from_tree(tree, collections)
         except Exception as e:
             logging.critical("Encountered exception: {}".format(repr(e)))
-            logging.critical("Dumping plan to file")
-            plan.save("download-dump.json")
+            exit()
         return plan
 
 
@@ -705,8 +705,7 @@ class UploadPlan(Plan):
             })
         except Exception as e:
             logging.critical("Encountered exception: {}".format(repr(e)))
-            logging.critical("Dumping plan to file")
-            plan.save("upload-dump.json")
+            exit()
         return plan
 
 
