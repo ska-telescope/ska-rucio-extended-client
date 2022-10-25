@@ -19,7 +19,11 @@ eng@ubuntu:~/SKAO/ska-rucio-extended-client$ docker run -it --rm -e PYTHONWARNIN
 [root@7021ab386a0f user]# rucio whoami
 ```
 
-Or use a pre-built image at the container registry [here](https://gitlab.com/ska-telescope/src/ska-rucio-extended-client/container_registry).
+Or use a pre-built image at the container registry [here](https://gitlab.com/ska-telescope/src/ska-rucio-extended-client/container_registry), e.g. 
+
+```bash
+docker run -it --rm -e PYTHONWARNINGS="ignore:Unverified HTTPS request" -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=robbarnsley registry.gitlab.com/ska-telescope/src/ska-rucio-extended-client:release-1.29.0
+```
 
 ### Local development (containerised via pip w/ symlinks)
 
