@@ -23,14 +23,26 @@ if __name__ == "__main__":
     parser.add_argument('--scope', help="scope", type=str)
     args = parser.parse_args()
 
-    if not args.scope:
-        raise ArgumentError("scope has not been set")
-    if not args.name:
-        raise ArgumentError("scope has not been set")
-    if args.p and not os.path.isfile(args.p):
-        raise ArgumentError("Plan given but path does not exist")
+    if args.v:
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s [%(name)s] %(module)10s %(levelname)5s %(process)d\t%(message)s")
+    else:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(asctime)s [%(name)s] %(module)10s %(levelname)5s %(process)d\t%(message)s")
+
     if not args.c or not os.path.isfile(args.c):
         raise ArgumentError("Configuration file has not been set or does not exist")
+
+    if args.p:
+        if not os.path.isfile(args.p):
+            raise ArgumentError("Plan given but path does not exist")
+    else:
+        if not args.scope:
+            raise ArgumentError("scope has not been set")
+        if not args.name:
+            raise ArgumentError("scope has not been set")
 
     config = configparser.ConfigParser()
     config.read(args.c)
@@ -41,15 +53,7 @@ if __name__ == "__main__":
     except KeyError as e:
         raise ConfigError("Key {} does not exist".format(e))
 
-    if args.v:
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format="%(asctime)s [%(name)s] %(module)10s %(levelname)5s %(process)d\t%(message)s")
-    else:
-        logging.basicConfig(
-            level=logging.INFO,
-            format="%(asctime)s [%(name)s] %(module)10s %(levelname)5s %(process)d\t%(message)s")
-
+    # either load or make plan
     if args.p:
         plan = DownloadPlan.load(args.p)
     else:

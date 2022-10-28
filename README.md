@@ -144,6 +144,10 @@ Plan Description
 2022-09-30 16:08:25,065 [root]       plan  INFO 629	Reached end of plan
 ```
 
+#### Known issues and workarounds
+
+If a bulk file upload step fails with the exception `NotAllFilesUploaded` it is necessary to run the dumped plan again until the exception changes to `NoFilesUploaded`. After this, increment the `current_step_number` by 1 to continue.
+
 ### rucio-download-directory: download a multi-level directory
 
 ```bash

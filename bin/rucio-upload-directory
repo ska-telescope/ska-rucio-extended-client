@@ -22,30 +22,6 @@ if __name__ == "__main__":
     parser.add_argument('--scope', help="scope", type=str)
     args = parser.parse_args()
 
-    if not args.lifetime:
-        raise ArgumentError("lifetime has not been set")
-    if not args.rse:
-        raise ArgumentError("rse has not been set")
-    if not args.scope:
-        raise ArgumentError("scope has not been set")
-    if args.d and not os.path.isdir(args.d):
-        raise ArgumentError("Directory given but path does not exist")
-    if args.p and not os.path.isfile(args.p):
-        raise ArgumentError("Plan given but path does not exist")
-    if not args.c or not os.path.isfile(args.c):
-        raise ArgumentError("Configuration file has not been set or does not exist")
-    if not args.n:
-        logging.info("No upload name set, using directory name {}".format(args.d))
-        args.n = args.d
-
-    config = configparser.ConfigParser()
-    config.read(args.c)
-    try:
-        root_suffix = config['general']['ROOT_SUFFIX']
-        path_delimiter = config['general']['PATH_DELIMITER']
-    except KeyError as e:
-        raise ConfigError("Key {} does not exist".format(e))
-
     if args.v:
         logging.basicConfig(
             level=logging.DEBUG,
@@ -55,15 +31,43 @@ if __name__ == "__main__":
             level=logging.INFO,
             format="%(asctime)s [%(name)s] %(module)10s %(levelname)5s %(process)d\t%(message)s")
 
+    if not args.c or not os.path.isfile(args.c):
+        raise ArgumentError("Configuration file has not been set or does not exist")
+
+    if args.p:
+        if not os.path.isfile(args.p):
+            raise ArgumentError("Plan given but path does not exist")
+    elif args.d:
+        if not args.lifetime:
+            raise ArgumentError("lifetime has not been set")
+        if not args.rse:
+            raise ArgumentError("rse has not been set")
+        if not args.scope:
+            raise ArgumentError("scope has not been set")
+        if not os.path.isdir(args.d):
+            raise ArgumentError("Directory given but path does not exist")
+        if not args.n:
+            logging.info("No upload name set, using directory name {}".format(args.d))
+            args.n = args.d
+    else:
+        logging.critical("Neither a directory or plan has been specified!")
+        exit()
+
+    config = configparser.ConfigParser()
+    config.read(args.c)
+    try:
+        root_suffix = config['general']['ROOT_SUFFIX']
+        path_delimiter = config['general']['PATH_DELIMITER']
+    except KeyError as e:
+        raise ConfigError("Key {} does not exist".format(e))
+
+    # either load or make plan
     if args.d:
         plan = UploadPlan.make_plan_from_directory(args.d, args.n, rse=args.rse, scope=args.scope,
                                                    lifetime=args.lifetime, root_suffix=root_suffix,
                                                    path_delimiter=path_delimiter)
     elif args.p:
         plan = UploadPlan.load(args.p)
-    else:
-        logging.critical("Neither a directory or plan has been specified!")
-        exit()
 
     plan.describe()
     plan.run(dry_run=args.dry_run)
