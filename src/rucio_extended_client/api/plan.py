@@ -11,6 +11,7 @@ from dirhash import dirhash
 from rucio.client import client
 from rucio.client.didclient import DIDClient
 from rucio.client.downloadclient import DownloadClient
+from rucio.client.ruleclient import RuleClient
 from rucio.client.uploadclient import UploadClient
 from treelib.exceptions import DuplicatedNodeIdError
 from treelib import Node, Tree
@@ -469,9 +470,11 @@ class UploadPlan(Plan):
 
         upload_client = UploadClient
         did_client = DIDClient
+        rule_client = RuleClient
         if not mock:                         # instantiate
             upload_client = upload_client()
             did_client = did_client()
+            rule_client = rule_client()
         try:
             for idx, (root, dirs, files) in enumerate(os.walk(root_directory, topdown=True)):
                 logging.debug("Considering directory {}".format(root))
@@ -493,8 +496,7 @@ class UploadPlan(Plan):
                         logging.debug("  Will create container with name {}".format(container_name))
                         plan.append_step("create_collections", fqn=did_client.add_container, arguments={
                             'scope': scope,
-                            'name': container_name,
-                            'lifetime': lifetime - int(time.time()-st)
+                            'name': container_name
                         })
 
                         # Create a dataset to hold the files at the root of this directory.
@@ -503,8 +505,7 @@ class UploadPlan(Plan):
                         logging.debug("  Will create dataset {}".format(dataset_name))
                         plan.append_step("create_collections", fqn=did_client.add_dataset, arguments={
                             'scope': scope,
-                            'name': dataset_name,
-                            'lifetime': lifetime - int(time.time()-st)
+                            'name': dataset_name
                         })
 
                         # Attach collections to parents.
@@ -571,8 +572,7 @@ class UploadPlan(Plan):
                         logging.debug("  Will create dataset {}".format(dataset_name))
                         plan.append_step("create_collections", fqn=did_client.add_dataset, arguments={
                             'scope': scope,
-                            'name': dataset_name,
-                            'lifetime': lifetime - int(time.time()-st)
+                            'name': dataset_name
                         })
 
                         # Attach collections to parents.
@@ -624,8 +624,7 @@ class UploadPlan(Plan):
                         logging.debug("  Will create container with name {}".format(container_name))
                         plan.append_step("create_collections", fqn=did_client.add_container, arguments={
                             'scope': scope,
-                            'name': container_name,
-                            'lifetime': lifetime - int(time.time()-st)
+                            'name': container_name
                         })
 
                         # Attach collections to parents.
@@ -656,8 +655,7 @@ class UploadPlan(Plan):
                         logging.debug("  Will create container with name {}".format(container_name))
                         plan.append_step("create_collections", fqn=did_client.add_container, arguments={
                             'scope': scope,
-                            'name': container_name,
-                            'lifetime': lifetime - int(time.time()-st)
+                            'name': container_name
                         })
 
                         # Attach collections to parents.
@@ -679,6 +677,15 @@ class UploadPlan(Plan):
                                                      }
                                                  ]
                                              })
+
+                if idx == 0:
+                    # Add a rule to root container only.
+                    plan.append_step("add_root_container_rule", fqn=rule_client.add_replication_rule, arguments={
+                        'dids': [{'scope': scope, 'name': root_container_name}],
+                        'copies': 1,
+                        'rse_expression': rse,
+                        'lifetime': lifetime
+                    })
 
             # Add directory checksum as metadata to root container
             plan.append_step("add_metadata", fqn=did_client.set_metadata, arguments={

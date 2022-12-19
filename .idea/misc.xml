@@ -5,22 +5,6 @@
     <option name="openedFilesInfos">
       <list>
         <OpenedFileInfo>
-          <option name="caretOffset" value="1475" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/README.md" />
-        </OpenedFileInfo>
-        <OpenedFileInfo>
-          <option name="caretOffset" value="483" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/bin/rucio-download-directory" />
-        </OpenedFileInfo>
-        <OpenedFileInfo>
-          <option name="caretOffset" value="0" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/.gitignore" />
-        </OpenedFileInfo>
-        <OpenedFileInfo>
-          <option name="caretOffset" value="131" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/Dockerfile.dev" />
-        </OpenedFileInfo>
-        <OpenedFileInfo>
           <option name="caretOffset" value="0" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/Dockerfile" />
         </OpenedFileInfo>
@@ -37,11 +21,27 @@
           <option name="fileUrl" value="file://$PROJECT_DIR$/.gitlab-ci.yml" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="0" />
+          <option name="caretOffset" value="2376" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/bin/rucio-upload-directory" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="5716" />
+          <option name="caretOffset" value="1276" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/bin/rucio-download-directory" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="0" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/src/rucio_extended_client/api/step.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="2045" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/README.md" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="131" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/Dockerfile.dev" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="21605" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/src/rucio_extended_client/api/plan.py" />
         </OpenedFileInfo>
       </list>
