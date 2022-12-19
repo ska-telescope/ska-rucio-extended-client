@@ -128,7 +128,7 @@ class Plan:
         """
         logging.info("Running plan")
         returns = []
-        for step in self.steps:
+        while True:
             try:
                 returns.append(self.run_next_step(section_name, dry_run))
                 if self.current_step_number > self.max_step_number:
@@ -138,7 +138,6 @@ class Plan:
                 logging.critical("Encountered exception running step {}: {}".format(self.current_step_number, repr(e)))
                 self.save("plan-dump.json")
                 exit()
-            step.is_done = True
         return returns
 
     def run_next_step(self, section_name: str = None, dry_run: bool = False) -> typing.Any:
@@ -168,6 +167,7 @@ class Plan:
         else:
             rtn = None
 
+        self.steps[self.current_step_number].is_done = True
         self.current_step_number += 1
 
         return rtn
