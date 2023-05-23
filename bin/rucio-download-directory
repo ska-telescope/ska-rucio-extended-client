@@ -43,7 +43,7 @@ if __name__ == "__main__":
         if not args.scope:
             raise ArgumentError("scope has not been set")
         if not args.name:
-            raise ArgumentError("scope has not been set")
+            raise ArgumentError("name has not been set")
 
     config = configparser.ConfigParser()
     config.read(args.c)
