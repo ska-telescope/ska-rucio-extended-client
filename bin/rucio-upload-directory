@@ -5,8 +5,8 @@ import configparser
 import logging
 import os
 
-from rucio_extended_client.common.exceptions import ArgumentError, ConfigError
-from rucio_extended_client.api.plan import UploadPlan
+from rucio_extended_client.common.exceptions import ArgumentError, ConfigError, UnknownMethod
+from rucio_extended_client.api.plan import UploadPlanMetadata, UploadPlanNative
 
 
 if __name__ == "__main__":
@@ -20,6 +20,7 @@ if __name__ == "__main__":
     parser.add_argument('--lifetime', help="rule lifetime for root container", type=int, default=3600)
     parser.add_argument('--rse', help="RSE to upload to", type=str)
     parser.add_argument('--scope', help="scope", type=str)
+    parser.add_argument('--skip-checksum', help="skip checksum?", action='store_true')
     args = parser.parse_args()
 
     if args.v:
@@ -56,18 +57,35 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read(args.c)
     try:
-        root_suffix = config['general']['ROOT_SUFFIX']
-        path_delimiter = config['general']['PATH_DELIMITER']
+        method = config['hierarchy']['METHOD'].lower()
+        hierarchy_key = config['hierarchy']['METADATA_KEY']
+        common_kwargs = {
+            'hierarchy_key': hierarchy_key
+        }
+        if method == 'native':
+            upload_plan_cls = UploadPlanNative
+            upload_plan_kwargs = {
+                'root_suffix': config['hierarchy.native']['ROOT_SUFFIX'],
+                'path_delimiter': config['hierarchy.native']['PATH_DELIMITER'],
+                **common_kwargs
+            }
+        elif method == 'metadata':
+            upload_plan_cls = UploadPlanMetadata
+            upload_plan_kwargs = {
+                **common_kwargs
+            }
+        else:
+            raise UnknownMethod("method {} is not understood".format(method))
     except KeyError as e:
         raise ConfigError("Key {} does not exist".format(e))
 
     # either load or make plan
     if args.d:
-        plan = UploadPlan.make_plan_from_directory(args.d, args.n, rse=args.rse, scope=args.scope,
-                                                   lifetime=args.lifetime, root_suffix=root_suffix,
-                                                   path_delimiter=path_delimiter)
+        plan = upload_plan_cls.make_plan_from_directory(args.d.rstrip('/'), args.n, rse=args.rse, scope=args.scope,
+                                                        lifetime=args.lifetime, do_checksum=not args.skip_checksum,
+                                                        **upload_plan_kwargs)
     elif args.p:
-        plan = UploadPlan.load(args.p)
+        plan = upload_plan_cls.load(args.p)
 
     plan.describe()
     plan.run(dry_run=args.dry_run)

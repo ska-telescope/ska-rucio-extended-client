@@ -9,7 +9,7 @@ from dirhash import dirhash
 from rucio.client.didclient import DIDClient
 
 from rucio_extended_client.common.exceptions import ArgumentError, ConfigError, ChecksumVerificationError
-from rucio_extended_client.api.plan import DownloadPlan
+from rucio_extended_client.api.plan import DownloadPlanMetadata, DownloadPlanNative
 
 
 if __name__ == "__main__":
@@ -21,6 +21,7 @@ if __name__ == "__main__":
     parser.add_argument('--dry-run', help="dry run?", action='store_true')
     parser.add_argument('--name', help="name", type=str)
     parser.add_argument('--scope', help="scope", type=str)
+    parser.add_argument('--skip-checksum', help="skip checksum?", action='store_true')
     args = parser.parse_args()
 
     if args.v:
@@ -48,40 +49,60 @@ if __name__ == "__main__":
     config.read(args.c)
     try:
         metadata_plugin = config['general']['METADATA_PLUGIN']
-        path_delimiter = config['general']['PATH_DELIMITER']
-        root_suffix = config['general']['ROOT_SUFFIX']
+        hierarchy_key = config['hierarchy']['METADATA_KEY']
+        method = config['hierarchy']['METHOD'].lower()
+        common_kwargs = {
+            'hierarchy_key': hierarchy_key
+        }
+        if method == 'native':
+            download_plan_cls = DownloadPlanNative
+            download_plan_kwargs = {
+                'fallback_root_suffix': config['hierarchy.native']['ROOT_SUFFIX'],
+                'fallback_path_delimiter': config['hierarchy.native']['PATH_DELIMITER'],
+                **common_kwargs
+            }
+        elif method == 'metadata':
+            download_plan_cls = DownloadPlanMetadata
+            download_plan_kwargs = {
+                **common_kwargs
+            }
+        else:
+            raise UnknownMethod("method {} is not understood".format(method))
     except KeyError as e:
         raise ConfigError("Key {} does not exist".format(e))
 
     # either load or make plan
     if args.p:
-        plan = DownloadPlan.load(args.p)
+        plan = download_plan_cls.load(args.p)
     else:
-        plan = DownloadPlan.make_plan_from_did(
-            root_container_scope=args.scope, root_container_name=args.name, fallback_root_suffix=root_suffix,
-            fallback_path_delimiter=path_delimiter, metadata_plugin=metadata_plugin, clobber=args.o,
-            show_tree=True)
+        plan = download_plan_cls.make_plan_from_did(
+            root_container_scope=args.scope, root_container_name=args.name, metadata_plugin=metadata_plugin,
+            clobber=args.o, show_tree=True, **download_plan_kwargs)
 
     plan.describe()
     plan.run(dry_run=args.dry_run)
 
-    # verify directory checksum
-    did_client = DIDClient()
+    # Verify directory checksum if requested.
+    if not args.skip_checksum and not args.dry_run:
+        # Get metadata of root container
+        did_client = DIDClient()
+        metadata = did_client.get_metadata(scope=args.scope, name=args.name, plugin=metadata_plugin)
 
-    # Get metadata of root container
-    metadata = did_client.get_metadata(scope=args.scope, name=args.name, plugin=metadata_plugin)
-
-    # Check for dir_checksum key
-    if 'dir_checksum' in metadata:
-        logging.info("dir_checksum found in metadata, verifying checksum")
-        dir_checksum = metadata['dir_checksum']
-        this_dir_checksum = dirhash(args.name, algorithm='md5', empty_dirs=True)
-        try:
-            assert dir_checksum == this_dir_checksum
-        except AssertionError as e:
-            logging.critical("Checksum verification failed")
-            raise ChecksumVerificationError("Directory checksum does not match: {}!={}".format(
-                dir_checksum, this_dir_checksum))
-        logging.info("Checksum verification passed")
-    else:
-        logging.warning("dir_checksum not in container metadata, skipping checksum verification")
+        # Check for dir_checksum key
+        if 'dir_checksum' in metadata[hierarchy_key]:
+            logging.info("dir_checksum key found in metadata")
+            dir_checksum = metadata[hierarchy_key]['dir_checksum']
+            if dir_checksum is None:
+                logging.warning("dir_checksum is Nonetype, skipping checksum verification")
+            else:
+                logging.info("verifying checksum")
+                this_dir_checksum = dirhash(args.name, algorithm='md5', empty_dirs=True)
+                try:
+                    assert dir_checksum == this_dir_checksum
+                except AssertionError as e:
+                    logging.critical("Checksum verification failed")
+                    raise ChecksumVerificationError("Directory checksum does not match: {}!={}".format(
+                        dir_checksum, this_dir_checksum))
+                logging.info("Checksum verification passed")
+        else:
+            logging.warning("dir_checksum not in container metadata, skipping checksum verification")

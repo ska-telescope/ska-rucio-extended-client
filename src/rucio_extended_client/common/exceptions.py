@@ -20,3 +20,9 @@ class DataFormatError(Exception):
     def __init__(self, message, **kwargs):
         self.message = message
         super().__init__(self.message)
+
+class UnknownMethod(Exception):
+    def __init__(self, message, **kwargs):
+        self.message = message
+        super().__init__(self.message)
+

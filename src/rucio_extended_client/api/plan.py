@@ -6,6 +6,7 @@ import pathlib
 import shutil
 import time
 import typing
+import uuid
 
 from dirhash import dirhash
 from rucio.client import client
@@ -21,15 +22,17 @@ from rucio_extended_client.api.step import Step
 
 
 class Plan:
-    def __init__(self, root_suffix: str, path_delimiter: str):
+    def __init__(self, root_suffix: str = None, path_delimiter: str = None, hierarchy_key: str = None, **kwargs):
         """
-        :param root_suffix: suffix to define that the file belongs to the base directory
-        :param path_delimiter: delimiter used to separate directories and files
+        :param root_suffix: suffix to define that the file belongs to the base directory (native method only)
+        :param path_delimiter: delimiter used to separate directories and files (native method only)
+        :param hierarchy_key: metadata key holding description of how did fits into hierarchy (metadata method only)
         """
         self._current_step_number = 0
         self.steps = []
         self.root_suffix = root_suffix
         self.path_delimiter = path_delimiter
+        self.hierarchy_key = hierarchy_key
 
     @property
     def current_step_number(self):
@@ -104,7 +107,7 @@ class Plan:
         logging.info("Loading plan from file {}".format(path))
         with open(path, 'r') as fi:
             inputs = json.load(fi)
-        plan = cls(inputs['root_suffix'], inputs['path_delimiter'])
+        plan = cls(**inputs)
         plan.current_step_number = inputs['current_step_number']
         function_classes_to_objects = {}        # avoid instantiating duplicate classes of same type
         for step in inputs['steps']:
@@ -134,7 +137,7 @@ class Plan:
                 if self.current_step_number > self.max_step_number:
                     logging.info("Reached end of plan")
                     return
-            except Exception as e:
+            except (Exception, KeyboardInterrupt) as e:
                 logging.critical("Encountered exception running step {}: {}".format(self.current_step_number, repr(e)))
                 self.save("plan-dump.json")
                 exit()
@@ -202,6 +205,7 @@ class Plan:
         output = {
             'current_step_number': self.current_step_number,
             'path_delimiter': self.path_delimiter,
+            'hierarchy_key': self.hierarchy_key,
             'root_suffix': self.root_suffix,
             'steps': step_output
         }
@@ -209,8 +213,141 @@ class Plan:
             json.dump(output, fi, indent=2)
 
 
-class DownloadPlan(Plan):
-    def __init__(self, root_suffix: str, path_delimiter: str):
+class DownloadPlanMetadata(Plan):
+    def __init__(self, hierarchy_key: str, **kwargs):
+        """
+        :param hierarchy_key: metadata key referencing hierarchical data
+        """
+        super().__init__(hierarchy_key)
+
+    @classmethod
+    def make_plan_from_did(
+            cls, root_container_scope: str, root_container_name: str, hierarchy_key: str ='hierarchy',
+            metadata_plugin: str = 'json', clobber: bool = True, show_tree: bool = True) -> typing.Type[Plan]:
+        """ Makes a download plan given the DID of a root container and according to the rules of the UploadPlan.
+
+        :param root_container_scope: the scope of the root container
+        :param root_container_name: the name of the root container
+        :param hierarchy_key: metadata key holding description of how did fits into hierarchy
+        :param metadata_plugin: the Rucio metadata plugin to use
+        :param clobber: overwrite existing directory if it exists
+        :param show_tree: show the hierarchical tree when constructing the plan
+        :return: a populated instance of DownloadPlan
+        """
+        did_client = DIDClient()
+        download_client =DownloadClient()
+
+        # Get metadata of root container
+        metadata = did_client.get_metadata(
+            scope=root_container_scope, name=root_container_name, plugin=metadata_plugin)
+
+        # Check for necessary hierarchy keys in metadata, and get emptydirs_container_name, files_dataset_name, files
+        # and emptydirs.
+        try:
+            assert hierarchy_key in metadata
+            logging.info("hierarchnical key ({}) found in metadata".format(hierarchy_key))
+            metadata_hierarchy = metadata[hierarchy_key]
+            assert 'emptydirs_container_name' in metadata_hierarchy
+            logging.info("emptydirs_container_name key found in metadata".format(hierarchy_key))
+            emptydirs_container_name = metadata_hierarchy['emptydirs_container_name']
+            assert 'files_dataset_name' in metadata_hierarchy
+            logging.info("files_dataset_name key found in metadata".format(hierarchy_key))
+            files_dataset_name = metadata_hierarchy['files_dataset_name']
+            assert 'files' in metadata_hierarchy
+            logging.info("files key found in metadata".format(hierarchy_key))
+            files = metadata_hierarchy['files']
+            assert 'emptydirs' in metadata_hierarchy
+            logging.info("emptydirs key found in metadata".format(hierarchy_key))
+            emptydirs = metadata_hierarchy['emptydirs']
+        except AssertionError:
+            logging.critical("Either the hierarchical key ({}), emptydirs_container_name or files_dataset_name was not "
+                            "found in root container metadata. This may not be hierarchical data.")
+            exit()
+
+        # Get DID of nested .emptydirs container and .files dataset.
+        content = did_client.list_content(scope=root_container_scope, name=root_container_name)
+        did_emptydirs_container = None
+        did_files_dataset = None
+        for item in content:
+            if emptydirs_container_name in item['name'] and 'CONTAINER' in item['type']:
+                did_emptydirs_container = '{}:{}'.format(item['scope'], item['name'])
+            if files_dataset_name in item['name'] and 'DATASET' in item['type']:
+                did_files_dataset = '{}:{}'.format(item['scope'], item['name'])
+
+        # Assert that we have the .emptydirs container and .files dataset.
+        try:
+            assert did_emptydirs_container is not None
+            logging.info("Found did_emptydir_container ({})".format(did_emptydirs_container))
+            assert did_files_dataset is not None
+            logging.info("Found did_files_dataset ({})".format(did_files_dataset))
+        except AssertionError:
+            logging.warning("Could not find either .emptydirs or .files DIDs attached to root container")
+            exit()
+
+        plan = cls(hierarchy_key)
+
+        # Add clobber step if set.
+        if clobber:
+            plan.append_step("overwrite_existing", fqn=shutil.rmtree, arguments={
+                'path': root_container_name
+            })
+
+        # The directory structure is simply the set of directory names from [files] and [emptydirs]
+        #
+        dirnames = set()
+        for fi in files:
+            dirnames.add(os.path.dirname(fi['path']))
+        for emptydir in emptydirs:
+            dirnames.add(emptydir['path'])
+
+        # Create tree, if requested
+        if show_tree:
+            tree = Tree()
+
+            # Add directories as nodes first.
+            for dirname in sorted(dirnames):
+                if not os.path.dirname(dirname).rstrip('/'):
+                    tree.create_node(dirname, dirname)
+                else:
+                    tree.create_node(dirname, dirname, parent=os.path.dirname(dirname))
+
+            # Then add files.
+            for fi in files:
+                tree.create_node(fi['path'], fi['path'], parent=os.path.dirname(dirname))
+
+            print()
+            print("Tree")
+            print("====")
+            print()
+            tree.show()
+
+        # Create these directories.
+        for dirname in dirnames:
+            plan.append_step("create_directories", fqn=pathlib.Path(dirname).mkdir, arguments={
+                'parents': True,
+                'exist_ok': True
+            })
+
+        # Download files and rename.
+        for fi in files:
+            name = fi['name']
+            path = fi['path']
+            plan.append_step("download_files", fqn=download_client.download_dids, arguments={
+                'items': [{
+                    'did': '{}:{}'.format(root_container_scope, name),
+                    'base_dir': os.path.dirname(path),
+                    'no_subdir': True
+                }]
+            })
+            plan.append_step("rename_files", fqn=os.rename, arguments={
+                'src': os.path.join(os.path.dirname(path), name),
+                'dst': os.path.join(path)
+            })
+
+        return plan
+
+class DownloadPlanNative(Plan):
+    def __init__(self, root_suffix: str, path_delimiter: str, **kwargs):
         """
         :param root_suffix: suffix to define that the file belongs to the base directory
         :param path_delimiter: delimiter used to separate directories and files
@@ -376,13 +513,14 @@ class DownloadPlan(Plan):
 
     @classmethod
     def make_plan_from_did(
-            cls, root_container_scope: str, root_container_name: str, fallback_root_suffix: str ='__root',
-            fallback_path_delimiter: str ='.', metadata_plugin: str = 'json', clobber: bool = True,
-            show_tree: bool = True) -> typing.Type[Plan]:
+            cls, root_container_scope: str, root_container_name: str, hierarchy_key: str = 'hierarchy',
+            fallback_root_suffix: str ='__root', fallback_path_delimiter: str ='.', metadata_plugin: str = 'json',
+            clobber: bool = True, show_tree: bool = True) -> typing.Type[Plan]:
         """ Makes a download plan given the DID of a root container and according to the rules of the UploadPlan.
 
         :param root_container_scope: the scope of the root container
         :param root_container_name: the name of the root container
+        :param hierarchy_key: metadata key holding description of how did fits into hierarchy
         :param fallback_root_suffix: fallback suffix to define that the file belongs to the base directory
         :param fallback_path_delimiter: fallback delimiter used to separate directories and files
         :param metadata_plugin: the Rucio metadata plugin to use
@@ -397,18 +535,29 @@ class DownloadPlan(Plan):
         metadata = did_client.get_metadata(
             scope=root_container_scope, name=root_container_name, plugin=metadata_plugin)
 
+        # Check for necessary hierarchy keys in metadata, and get emptydirs_container_name, files_dataset_name, files
+        # and emptydirs.
+        try:
+            assert hierarchy_key in metadata
+            logging.info("hierarchnical key ({}) found in metadata".format(hierarchy_key))
+            metadata_hierarchy = metadata[hierarchy_key]
+        except AssertionError:
+            logging.critical("The hierarchical key ({}) could not be found in root container metadata. This may not be "
+                             "hierarchical data.")
+            exit()
+
         # Check for root_suffix and path_delimiter keys, otherwise fallback to those in config
-        if 'root_suffix' in metadata:
-            logging.info("root_suffix found in metadata ({})".format(metadata['root_suffix']))
-            root_suffix = metadata['root_suffix']
+        if 'root_suffix' in metadata_hierarchy:
+            logging.info("root_suffix found in metadata ({})".format(metadata_hierarchy['root_suffix']))
+            root_suffix = metadata_hierarchy['root_suffix']
         else:
             logging.warning("root_suffix not in container metadata, falling back to config ({})".format(
                 fallback_root_suffix))
             root_suffix = fallback_root_suffix
 
-        if 'path_delimiter' in metadata:
-            logging.info("path_delimiter found in metadata ({})".format(metadata['path_delimiter']))
-            path_delimiter = metadata['path_delimiter']
+        if 'path_delimiter' in metadata_hierarchy:
+            logging.info("path_delimiter found in metadata ({})".format(metadata_hierarchy['path_delimiter']))
+            path_delimiter = metadata_hierarchy['path_delimiter']
         else:
             logging.warning("path_delimiter not in container metadata, falling back to config ({})".format(
                 fallback_path_delimiter))
@@ -438,14 +587,216 @@ class DownloadPlan(Plan):
         return plan
 
 
-class UploadPlan(Plan):
-    def __init__(self, root_suffix: str, path_delimiter: str):
-        super().__init__(root_suffix, path_delimiter)
+class UploadPlanMetadata(Plan):
+    def __init__(self, hierarchy_key: str, **kwargs):
+        """
+        :param hierarchy_key: metadata key referencing hierarchical data
+        """
+        super().__init__(hierarchy_key)
 
     @classmethod
     def make_plan_from_directory(
             cls, root_directory: str, root_container_name: str, rse: str, scope: str, lifetime: int,
-            root_suffix: str = '__root', path_delimiter: str = '.', mock: bool = False) -> typing.Type[Plan]:
+            hierarchy_key: str = 'hierarchy', mock: bool = False, do_checksum: bool = True) -> typing.Type[Plan]:
+        """
+        Makes a new plan with steps created according to the following rules:
+
+        - the root container will have a dataset with prefix .files containing dids
+        - the root container will have a collection with prefix .emptydirs containing datasets representing empty
+          directories
+
+        The root container itself is the source of the hierarchical layout where corresponding metadata is held under
+        the [hierarchy_key] key. This is preferred to per-file metadata to avoid having to do multiple get_metadata()
+        queries when downloading the data.
+
+        :param root_directory: the directory to upload
+        :param root_container_name: the name to use for the root container
+        :param rse: the RSE to upload to
+        :param scope: the scope to use for uploaded content
+        :param lifetime: the lifetime of uploaded content
+        :param hierarchy_key: metadata key holding description of how did fits into hierarchy
+        :param mock: only use for pytests (doesn't instantiate clients)
+        :param do_checksum: do directory checksum
+        :return: a populated instance of UploadPlan
+        """
+        st = time.time()
+        plan = cls(hierarchy_key)
+
+        upload_client = UploadClient
+        did_client = DIDClient
+        rule_client = RuleClient
+        if not mock:                         # instantiate
+            upload_client = upload_client()
+            did_client = did_client()
+            rule_client = rule_client()
+        try:
+            # Create a root container to hold files dataset and empty directories container.
+            logging.debug("Will create container {}".format(root_container_name))
+            plan.append_step("create_root_container", fqn=did_client.add_container, arguments={
+                'scope': scope,
+                'name': root_container_name
+            })
+            files_dataset_name = "{}.files".format(root_container_name)
+            logging.debug("Will create dataset {}".format(files_dataset_name))
+            plan.append_step("create_files_dataset", fqn=did_client.add_dataset, arguments={
+                'scope': scope,
+                'name': files_dataset_name
+            })
+            emptydirs_container_name = "{}.emptydirs".format(root_container_name)
+            logging.debug("Will create container {}".format(emptydirs_container_name))
+            plan.append_step("create_emptydirs_container", fqn=did_client.add_container, arguments={
+                'scope': scope,
+                'name': emptydirs_container_name
+            })
+
+            # Attach these to the root container.
+            plan.append_step("create_attachments", fqn=did_client.add_datasets_to_containers, arguments={
+                'attachments': [
+                    {
+                        'scope': scope,
+                        'name': root_container_name,
+                        'dids': [
+                            {
+                                'scope': scope,
+                                'name': files_dataset_name
+                            }
+                        ]
+                    }
+                ]
+            })
+            plan.append_step("create_attachments", fqn=did_client.add_containers_to_containers, arguments={
+                'attachments': [
+                    {
+                        'scope': scope,
+                        'name': root_container_name,
+                        'dids': [
+                            {
+                                'scope': scope,
+                                'name': emptydirs_container_name
+                            }
+                        ]
+                    }
+                ]
+            })
+
+            n_files = 0
+            n_emptydir = 0
+            root_container_hierarchy_files = []
+            root_container_hierarchy_emptydirs = []
+            for idx, (root, dirs, files) in enumerate(os.walk(root_directory, topdown=True)):
+                logging.debug("Considering directory {}".format(root))
+                if idx == 0 and not dirs:
+                    raise DataFormatError("Parent directory is not a multi level directory")
+                if files:
+                    logging.debug("This directory contains files")
+
+                    # Upload files and add to this dataset.
+                    logging.debug("  Will add the following files to the {} dataset:".format(files_dataset_name))
+                    items = []
+                    for fi in files:
+                        path = '/'.join([root_container_name] + \
+                            os.path.join(root, fi).split(os.sep)[len(root_directory.split(os.sep)):])
+                        name = str(uuid.uuid4())
+                        logging.debug("  - {} as {}".format(os.path.join(root, fi), name))
+                        items.append({
+                            'path': os.path.join(root, fi),
+                            'rse': rse,
+                            'did_scope': scope,
+                            'did_name': name,
+                            'dataset_scope': scope,
+                            'dataset_name': files_dataset_name,
+                            'register_after_upload': True
+                        })
+                        root_container_hierarchy_files.append({
+                            'path': path,
+                            'name': name
+                        })
+                        n_files+=1
+                    plan.append_step("upload_files", fqn=upload_client.upload, arguments={
+                        'items': items
+                    })
+                elif not files and not dirs:
+                    logging.debug("This directory is empty")
+
+                    # Create dataset representing this empty dir.
+                    path = '/'.join([root_container_name] + root.split(os.sep)[len(root_directory.split(os.sep)):])
+                    emptydir_dataset_name = str(uuid.uuid4())
+                    logging.debug("  Will create dataset representing {} as {}".format(path, emptydir_dataset_name))
+                    plan.append_step("create_emptydir_dataset", fqn=did_client.add_dataset, arguments={
+                        'scope': scope,
+                        'name': emptydir_dataset_name
+                    })
+
+                    # Attach this to the .emptydirs container.
+                    plan.append_step("create_attachments", fqn=did_client.add_datasets_to_containers, arguments={
+                        'attachments': [
+                            {
+                                'scope': scope,
+                                'name': emptydirs_container_name,
+                                'dids': [
+                                    {
+                                        'scope': scope,
+                                        'name': emptydir_dataset_name
+                                    }
+                                ]
+                            }
+                        ]
+                    })
+
+                    # Add metadata for these emptydirs
+                    root_container_hierarchy_emptydirs.append({
+                        'path': path,
+                        'name': emptydir_dataset_name
+                    })
+
+                    n_emptydir+=1
+                if idx == 0:
+                    # Add a rule to root container only.
+                    plan.append_step("add_root_container_rule", fqn=rule_client.add_replication_rule, arguments={
+                        'dids': [{'scope': scope, 'name': root_container_name}],
+                        'copies': 1,
+                        'rse_expression': rse,
+                        'lifetime': lifetime
+                    })
+
+            # Add metadata to root container.
+            dir_checksum = None
+            if do_checksum:
+                dir_checksum = dirhash(root_directory, algorithm='md5', empty_dirs=True)
+            plan.append_step("add_metadata", fqn=did_client.set_metadata_bulk, arguments={
+                'scope': scope,
+                'name': root_container_name,
+                'meta': {
+                    hierarchy_key: {
+                        'upload_class': cls.__name__,
+                        'dir_checksum': dir_checksum,
+                        'n_files': n_files,
+                        'n_emptydir': n_emptydir,
+                        'files_dataset_name': files_dataset_name,
+                        'emptydirs_container_name': emptydirs_container_name,
+                        'files': root_container_hierarchy_files,
+                        'emptydirs': root_container_hierarchy_emptydirs
+                    }
+                }
+            })
+        except Exception as e:
+            logging.critical("Encountered exception: {}".format(repr(e)))
+            exit()
+        return plan
+
+class UploadPlanNative(Plan):
+    def __init__(self, root_suffix: str, path_delimiter: str, **kwargs):
+        """
+        :param root_suffix: suffix to define that the file belongs to the base directory
+        :param path_delimiter: delimiter used to separate directories and files
+        """
+        super().__init__(root_suffix, path_delimiter)
+
+    @classmethod
+    def make_plan_from_directory(
+            cls, root_directory: str, root_container_name: str, rse: str, scope: str, lifetime: int, hierarchy_key: str
+            = 'hierarchy', root_suffix: str = '__root', path_delimiter: str = '.', mock: bool = False,
+            do_checksum: bool = True) -> typing.Type[Plan]:
         """
 
         Makes a new plan with steps created according to the following rules:
@@ -460,9 +811,11 @@ class UploadPlan(Plan):
         :param rse: the RSE to upload to
         :param scope: the scope to use for uploaded content
         :param lifetime: the lifetime of uploaded content
+        :param hierarchy_key: metadata key holding description of how did fits into hierarchy
         :param root_suffix: suffix to define that the file belongs to the base directory
         :param path_delimiter: delimiter used to separate directories and files
         :param mock: only use for pytests (doesn't instantiate clients)
+        :param do_checksum: do directory checksum
         :return: a populated instance of UploadPlan
         """
         st = time.time()
@@ -687,28 +1040,21 @@ class UploadPlan(Plan):
                         'lifetime': lifetime
                     })
 
-            # Add directory checksum as metadata to root container
-            plan.append_step("add_metadata", fqn=did_client.set_metadata, arguments={
+            # Add metadata to root container.
+            dir_checksum = None
+            if do_checksum:
+                dir_checksum = dirhash(root_directory, algorithm='md5', empty_dirs=True)
+            plan.append_step("add_metadata", fqn=did_client.set_metadata_bulk, arguments={
                 'scope': scope,
                 'name': root_container_name,
-                'key': 'dir_checksum',
-                'value': dirhash(root_directory, algorithm='md5', empty_dirs=True)
-            })
-
-            # Add root_suffix as metadata to root container
-            plan.append_step("add_metadata", fqn=did_client.set_metadata, arguments={
-                'scope': scope,
-                'name': root_container_name,
-                'key': 'root_suffix',
-                'value': root_suffix
-            })
-
-            # Add path_delimiter as metadata to root container
-            plan.append_step("add_metadata", fqn=did_client.set_metadata, arguments={
-                'scope': scope,
-                'name': root_container_name,
-                'key': 'path_delimiter',
-                'value': path_delimiter
+                'meta': {
+                    hierarchy_key: {
+                        'upload_class': cls.__name__,
+                        'dir_checksum': dir_checksum,
+                        'root_suffix': root_suffix,
+                        'path_delimiter': path_delimiter
+                    }
+                }
             })
         except Exception as e:
             logging.critical("Encountered exception: {}".format(repr(e)))

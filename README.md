@@ -40,6 +40,8 @@ And authenticate as usual:
 [root@7021ab386a0f user]# rucio whoami 
 ```
 
+If you want to attach to an existing Rucio development environment, remember to attach the corresponding network and copy the rucio.cfg from the test client container.
+
 ## Functionality
 
 Additional functionality provided by this package includes:
