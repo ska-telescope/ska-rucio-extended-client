@@ -113,12 +113,15 @@ class Plan:
         for step in inputs['steps']:
             module = import_module(step['function_module_name'])
             if step['function_class_name']:     # bound method
-                if step['function_class_name'] not in function_classes_to_objects:
-                    function_classes_to_objects[step['function_class_name']] = \
+                try:
+                    if step['function_class_name'] not in function_classes_to_objects:
+                        function_classes_to_objects[step['function_class_name']] = \
                         getattr(module, step['function_class_name'])()
-                function_class_instance = function_classes_to_objects[step['function_class_name']]
-                fqn = getattr(function_class_instance, step['function_name'])
-            else:
+                    function_class_instance = function_classes_to_objects[step['function_class_name']]
+                    fqn = getattr(function_class_instance, step['function_name'])
+                except AttributeError:          # bound method with no class, just module
+                    fqn = getattr(module, step['function_name'])
+            else:                               # unbound method (e.g. class)
                 fqn = getattr(module, step['function_name'])
             plan.append_step(step['section_name'], fqn, arguments=step['arguments'], is_done=step['is_done'])
         return plan
@@ -336,8 +339,9 @@ class DownloadPlanMetadata(Plan):
                 'items': [{
                     'did': '{}:{}'.format(root_container_scope, name),
                     'base_dir': os.path.dirname(path),
-                    'no_subdir': True
-                }]
+                    'no_subdir': True,
+                    'transfer_timeout': 3600
+                }],
             })
             plan.append_step("rename_files", fqn=os.rename, arguments={
                 'src': os.path.join(os.path.dirname(path), name),
@@ -402,7 +406,8 @@ class DownloadPlanNative(Plan):
                     'items': [{
                         'did': lfn,
                         'base_dir': path,
-                        'no_subdir': True
+                        'no_subdir': True,
+                        'transfer_timeout': 3600
                     }]
                 })
                 self.append_step("rename_files", fqn=os.rename, arguments={

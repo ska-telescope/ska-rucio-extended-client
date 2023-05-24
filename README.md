@@ -40,16 +40,22 @@ And authenticate as usual:
 [root@7021ab386a0f user]# rucio whoami 
 ```
 
-If you want to attach to an existing Rucio development environment, remember to attach the corresponding network and copy the rucio.cfg from the test client container.
+If you want to attach to an existing Rucio development environment, instantiated with docker-compose for example, remember to attach the corresponding network and copy the `rucio.cfg` from the test client container.
 
 ## Functionality
 
 Additional functionality provided by this package includes:
 
 - `rucio-upload-directory`: upload a multi-level directory
-- `rucio-download-directory`: download a multi-level directory (previously uploaded with `rucio-upload-directory`) 
+- `rucio-download-directory`: download a multi-level directory (previously uploaded with `rucio-upload-directory`)
 
 ### rucio-upload-directory: upload a multi-level directory
+
+Downloading a directory can proceed via two methods: `native` and `metadata`. 
+
+The native method uses Rucio native datatypes to represent the directory structure, but is not well supported within Rucio where bottlenecks are encountered for heavily nested directories. See (here)[https://github.com/rucio/rucio/issues/6049]. 
+ 
+The metadata method uses file metadata to store the directory structure.
 
 ```bash
 eng@ubuntu:~/SKAO/ska-rucio-extended-client$ tree dummy_directory
@@ -151,6 +157,12 @@ Plan Description
 If a bulk file upload step fails with the exception `NotAllFilesUploaded` it is necessary to run the dumped plan again until the exception changes to `NoFilesUploaded`. After this, increment the `current_step_number` by 1 to continue.
 
 ### rucio-download-directory: download a multi-level directory
+
+Downloading a directory can proceed via two methods: `native` and `metadata`. 
+
+The native method uses Rucio native datatypes to represent the directory structure, but is not well supported within Rucio where bottlenecks are encountered for heavily nested directories. See (here)[https://github.com/rucio/rucio/issues/6049]. 
+ 
+The metadata method uses file metadata to store the directory structure.
 
 ```bash
 [user@f5945aba3d52 rucio-extended-client]$ rucio-download-directory --name test_upload --scope hierarchy_tests
