@@ -1,6 +1,6 @@
 import tempfile
 
-from rucio_extended_client.api.plan import UploadPlan
+from rucio_extended_client.api.plan import UploadPlanNative
 
 class TestUploadFolder:
     '''
@@ -37,7 +37,7 @@ class TestUploadFolder:
     d4_d1 = tempfile.TemporaryDirectory(dir=d4.name)
     d5 = tempfile.TemporaryDirectory(dir=root.name)
 
-    plan = UploadPlan.make_plan_from_directory(
+    plan = UploadPlanNative.make_plan_from_directory(
         root_directory=root.name,
         root_container_name='test',
         rse='test_rse',

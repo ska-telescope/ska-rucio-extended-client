@@ -1,6 +1,6 @@
 from pytest_unordered import unordered
 
-from rucio_extended_client.api.plan import DownloadPlan
+from rucio_extended_client.api.plan import DownloadPlanNative
 
 class TestDownloadFolder:
     graph = {
@@ -40,7 +40,7 @@ class TestDownloadFolder:
         'hierarchy_tests:test_upload_1'
     ]
 
-    plan = DownloadPlan(root_suffix='__root', path_delimiter='.',)
+    plan = DownloadPlanNative(root_suffix='__root', path_delimiter='.',)
 
     def test_download_folder_create_tree(self):
         """ Checking addition of steps to plan. Do this by checking the number of steps per section. """
