@@ -2,7 +2,12 @@ from pytest_unordered import unordered
 
 from rucio_extended_client.api.plan import DownloadPlanNative
 
-class TestDownloadFolder:
+
+class TestDownloadFolderMetadata:
+    pass
+
+
+class TestDownloadFolderNative:
     graph = {
         'hierarchy_tests:test_upload_1.d1': {'hierarchy_tests:test_upload_1.d1.d1_d1',
                                              'hierarchy_tests:test_upload_1.d1__root'},

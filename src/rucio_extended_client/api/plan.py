@@ -238,7 +238,7 @@ class DownloadPlanMetadata(Plan):
         :return: a populated instance of DownloadPlan
         """
         did_client = DIDClient()
-        download_client =DownloadClient()
+        download_client = DownloadClient()
 
         # Get metadata of root container
         metadata = did_client.get_metadata(
