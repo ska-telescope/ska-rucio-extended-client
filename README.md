@@ -41,7 +41,7 @@ eng@ubuntu:~/SKAO/ska-rucio-extended-client$ export PYTHONWARNINGS="ignore:Unver
 eng@ubuntu:~/SKAO/ska-rucio-extended-client$ python3 -m pip install .
 ```
 
-#### Running in Docker (local)
+### Running in Docker (local)
 
 A Dockerfile is provided to build an image (Makefile target included) with the necessary packages pre-installed:
 
@@ -50,7 +50,7 @@ eng@ubuntu:~/SKAO/ska-rucio-extended-client$ make image
 eng@ubuntu:~/SKAO/ska-rucio-extended-client$ docker run -it --rm -e PYTHONWARNINGS="ignore:Unverified HTTPS request" -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=$ACCOUNT rucio-extended-client:`cat BASE_RUCIO_CLIENT_TAG`
 ```
 
-#### Running in Docker (remote)
+### Running in Docker (remote)
 
 A pre-built image for this package is available at the container registry [here](https://gitlab.com/ska-telescope/src/ska-rucio-extended-client/container_registry). Simply substitute in the name and tag like so:
 
@@ -81,18 +81,18 @@ $ rucio-extended --help
 
 #### directory
 
-The `directory` commands has the following nested subcommands:
+The `directory` command has the following nested subcommands:
 
 - `rucio-extended directory upload`: upload a multi-level directory
 - `rucio-extended directory download`: download a multi-level directory (previously uploaded with `rucio-extended directory upload`)
 
 ##### directory upload
 
-Uploading a directory can proceed via two methods: `native` and `metadata`. 
+Uploading a directory can proceed via two methods: `native` and `metadata`. This is configurable by changing `hierarchy.METHOD` in `/etc/config.ini`.
 
 The native method uses Rucio native datatypes to represent the directory structure, but is not well supported within Rucio where bottlenecks are encountered for heavily nested directories. See (here)[https://github.com/rucio/rucio/issues/6049]. 
  
-The metadata method uses file metadata to store the directory structure.
+The metadata method uses file metadata to store the directory structure. This is the default.
 
 ###### Example
 
@@ -117,7 +117,7 @@ eng@ubuntu:~/SKAO/ska-rucio-extended-client$ tree dummy_directory
 ```
 
 ```bash
-[user@f5945aba3d52 rucio-extended-client]$ rucio-upload-directory --lifetime=76200 --rse STFC_STORM --scope hierarchy_tests -d dummy_directory -n test_upload
+[user@f5945aba3d52 rucio-extended-client]$ rucio-extended directory upload --lifetime=76200 --rse STFC_STORM --scope hierarchy_tests -d dummy_directory -n test_upload
 
 Plan Description
 ================
@@ -197,16 +197,16 @@ If a bulk file upload step fails with the exception `NotAllFilesUploaded` it is 
 
 ##### directory download
 
-Downloading a directory can proceed via two methods: `native` and `metadata`. 
+Downloading a directory can proceed via two methods: `native` and `metadata`. This is configurable by changing `hierarchy.METHOD` in `/etc/config.ini`.
 
 The native method uses Rucio native datatypes to represent the directory structure, but is not well supported within Rucio where bottlenecks are encountered for heavily nested directories. See (here)[https://github.com/rucio/rucio/issues/6049]. 
  
-The metadata method uses file metadata to store the directory structure.
+The metadata method uses file metadata to store the directory structure. This is the default.
 
 ###### Example
 
 ```bash
-[user@f5945aba3d52 rucio-extended-client]$ rucio-download-directory --name test_upload --scope hierarchy_tests
+[user@f5945aba3d52 rucio-extended-client]$ rucio-extended directory download --name test_upload --scope hierarchy_tests
 2022-09-30 16:09:05,310 [root]       plan  INFO 636	root_suffix found in metadata (__root)
 2022-09-30 16:09:05,310 [root]       plan  INFO 636	path_delimiter found in metadata (.)
 
