@@ -19,7 +19,7 @@ setup(
     url='https://gitlab.com/ska-telescope/src/ska-rucio-extended-client',
     author='rob barnsley',
     author_email='rob.barnsley@skao.int',
-    packages=['rucio_extended_client.api', 'rucio_extended_client.common'],
+    packages=['rucio_extended_client.api', 'rucio_extended_client.cli', 'rucio_extended_client.common'],
     package_dir={'': 'src'},
     data_files=data_files,
     scripts=scripts,

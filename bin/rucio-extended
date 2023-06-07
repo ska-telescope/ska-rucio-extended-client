@@ -1,0 +1,26 @@
+#!/usr/bin/env python
+
+import argparse
+
+from rucio_extended_client.cli import Directory
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(help='extended client capabilities', dest='command')
+
+    # add commands and subcommands
+    # directory based operations
+    directory = Directory()
+    directory.add_to_argparse(subparsers)
+
+    # execute
+    args = parser.parse_args()
+    if args.command == 'directory':
+        if args.subcommand == 'download':
+            directory.download(args)
+        elif args.subcommand == 'upload':
+            directory.upload(args)
+    else:
+        print(parser.print_help())
+

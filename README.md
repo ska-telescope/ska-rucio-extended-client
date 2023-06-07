@@ -1,28 +1,61 @@
 # ska-rucio-extended-client
 
-## Usage
+[[_TOC_]]
 
-This package can be installed locally via pip, e.g. to install and authenticate as a user with account `$ACCOUNT` via OIDC:
+## Overview
+
+The rucio extended client builds upon the core functionality provided by the base Rucio client. Additional functionality 
+includes:
+
+- Hierarchical data management (uploads and downloads)
+
+## Install
+
+In the following sections it is assumed that the user is authenticating with the Rucio datalake via OIDC.
+
+The recommended method is to use a docker container.
+
+### Running natively
+
+To run the extended client natively the user must first install the base rucio client package. This can be done via pip:
 
 ```bash
-eng@ubuntu:~/SKAO/ska-rucio-extended-client$ export PYTHONWARNINGS="ignore:Unverified HTTPS request" && export LANG="en_US.UTF-8"
-eng@ubuntu:~/SKAO/ska-rucio-extended-client$ python3 -m pip install .
-eng@ubuntu:~/SKAO/ska-rucio-extended-client$ sed -c -i "s/\(account *= *\).*/\1$ACCOUNT/" /opt/rucio/etc/rucio.cfg
-eng@ubuntu:~/SKAO/ska-rucio-extended-client$ rucio whoami
+eng@ubuntu:~/SKAO$ python3 -m pip install rucio[clients]
 ```
 
-Alternatively, a Dockerfile is provided to build an image (Makefile target included) with the package pre-installed:
+Following this, they must create a [Rucio configuration file](https://gitlab.com/ska-telescope/src/ska-rucio-client/-/blob/master/etc/rucio/rucio.cfg.ska.j2)
+as `/opt/rucio/etc/rucio.cfg`, taking care to set the authentication parameters:
+
+```
+rucio_host = https://path/to/rucio/host
+auth_host = https://path/to/auth/host
+auth_type = oidc
+account = <account_name>
+```
+
+The extended client package can be then be installed natively by a local pip install:
+
+```bash
+eng@ubuntu:~/SKAO$ git clone https://gitlab.com/ska-telescope/src/ska-rucio-extended-client.git && cd ska-rucio-extended-client
+eng@ubuntu:~/SKAO/ska-rucio-extended-client$ export PYTHONWARNINGS="ignore:Unverified HTTPS request" && export LANG="en_US.UTF-8"
+eng@ubuntu:~/SKAO/ska-rucio-extended-client$ python3 -m pip install .
+```
+
+#### Running in Docker (local)
+
+A Dockerfile is provided to build an image (Makefile target included) with the necessary packages pre-installed:
 
 ```bash
 eng@ubuntu:~/SKAO/ska-rucio-extended-client$ make image
 eng@ubuntu:~/SKAO/ska-rucio-extended-client$ docker run -it --rm -e PYTHONWARNINGS="ignore:Unverified HTTPS request" -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=$ACCOUNT rucio-extended-client:`cat BASE_RUCIO_CLIENT_TAG`
-[root@7021ab386a0f user]# rucio whoami
 ```
 
-Or use a pre-built image at the container registry [here](https://gitlab.com/ska-telescope/src/ska-rucio-extended-client/container_registry), e.g. 
+#### Running in Docker (remote)
+
+A pre-built image for this package is available at the container registry [here](https://gitlab.com/ska-telescope/src/ska-rucio-extended-client/container_registry). Simply substitute in the name and tag like so:
 
 ```bash
-docker run -it --rm -e PYTHONWARNINGS="ignore:Unverified HTTPS request" -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=$ACCOUNT registry.gitlab.com/ska-telescope/src/ska-rucio-extended-client:release-1.29.0
+eng@ubuntu:~$ docker run -it --rm -e PYTHONWARNINGS="ignore:Unverified HTTPS request" -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=$ACCOUNT registry.gitlab.com/ska-telescope/src/ska-rucio-extended-client:release-1.29.0
 ```
 
 ### Local development (containerised via pip w/ symlinks)
@@ -34,28 +67,34 @@ eng@ubuntu:~/SKAO/ska-rucio-extended-client$ make image-devel
 eng@ubuntu:~/SKAO/ska-rucio-extended-client$ docker run -it --rm -e PYTHONWARNINGS="ignore:Unverified HTTPS request" -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=$ACCOUNT -v /home/eng/SKAO/ska-rucio-extended-client:/opt/rucio-extended-client rucio-extended-client:`cat BASE_RUCIO_CLIENT_TAG`-devel
 ```
 
-And authenticate as usual:
+If you want to attach to an existing Rucio **development** environment i.e. the one instantiated with `docker-compose`, remember to attach the extended client to the corresponding docker network and copy the `rucio.cfg` from the development client container to the extended client container.
+
+## Usage
+
+Extended client commands are available as an alias of `rucio-extended`, e.g. 
 
 ```bash
-[root@7021ab386a0f user]# rucio whoami 
+$ rucio-extended --help
 ```
 
-If you want to attach to an existing Rucio development environment, instantiated with docker-compose for example, remember to attach the corresponding network and copy the `rucio.cfg` from the test client container.
+### Commands
 
-## Functionality
+#### directory
 
-Additional functionality provided by this package includes:
+The `directory` commands has the following nested subcommands:
 
-- `rucio-upload-directory`: upload a multi-level directory
-- `rucio-download-directory`: download a multi-level directory (previously uploaded with `rucio-upload-directory`)
+- `rucio-extended directory upload`: upload a multi-level directory
+- `rucio-extended directory download`: download a multi-level directory (previously uploaded with `rucio-extended directory upload`)
 
-### rucio-upload-directory: upload a multi-level directory
+##### directory upload
 
-Downloading a directory can proceed via two methods: `native` and `metadata`. 
+Uploading a directory can proceed via two methods: `native` and `metadata`. 
 
 The native method uses Rucio native datatypes to represent the directory structure, but is not well supported within Rucio where bottlenecks are encountered for heavily nested directories. See (here)[https://github.com/rucio/rucio/issues/6049]. 
  
 The metadata method uses file metadata to store the directory structure.
+
+###### Example
 
 ```bash
 eng@ubuntu:~/SKAO/ska-rucio-extended-client$ tree dummy_directory
@@ -152,17 +191,19 @@ Plan Description
 2022-09-30 16:08:25,065 [root]       plan  INFO 629	Reached end of plan
 ```
 
-#### Known issues and workarounds
+###### Known issues and workarounds
 
 If a bulk file upload step fails with the exception `NotAllFilesUploaded` it is necessary to run the dumped plan again until the exception changes to `NoFilesUploaded`. After this, increment the `current_step_number` by 1 to continue.
 
-### rucio-download-directory: download a multi-level directory
+##### directory download
 
 Downloading a directory can proceed via two methods: `native` and `metadata`. 
 
 The native method uses Rucio native datatypes to represent the directory structure, but is not well supported within Rucio where bottlenecks are encountered for heavily nested directories. See (here)[https://github.com/rucio/rucio/issues/6049]. 
  
 The metadata method uses file metadata to store the directory structure.
+
+###### Example
 
 ```bash
 [user@f5945aba3d52 rucio-extended-client]$ rucio-download-directory --name test_upload --scope hierarchy_tests

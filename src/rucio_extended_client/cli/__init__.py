@@ -1,0 +1,1 @@
+from rucio_extended_client.cli.directory import Directory
