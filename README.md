@@ -86,7 +86,7 @@ The `directory` command has the following nested subcommands:
 - `rucio-extended directory upload`: upload a multi-level directory
 - `rucio-extended directory download`: download a multi-level directory (previously uploaded with `rucio-extended directory upload`)
 
-##### directory upload
+##### upload
 
 Uploading a directory can proceed via two methods: `native` and `metadata`. This is configurable by changing `hierarchy.METHOD` in `/etc/config.ini`.
 
