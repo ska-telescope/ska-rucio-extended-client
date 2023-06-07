@@ -195,7 +195,7 @@ Plan Description
 
 If a bulk file upload step fails with the exception `NotAllFilesUploaded` it is necessary to run the dumped plan again until the exception changes to `NoFilesUploaded`. After this, increment the `current_step_number` by 1 to continue.
 
-##### directory download
+##### download
 
 Downloading a directory can proceed via two methods: `native` and `metadata`. This is configurable by changing `hierarchy.METHOD` in `/etc/config.ini`.
 
