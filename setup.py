@@ -7,6 +7,9 @@ from setuptools import setup, find_packages
 with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
+with open('VERSION') as f:
+    version = f.read()
+
 data_files = [
     ('etc', ['etc/config.ini']),
 ]
@@ -14,7 +17,7 @@ scripts = glob.glob('bin/rucio*')
 
 setup(
     name='rucio_extended_client',
-    version='0.1.0',
+    version=version,
     description='A rucio client with extended functionality',
     url='https://gitlab.com/ska-telescope/src/ska-rucio-extended-client',
     author='rob barnsley',
