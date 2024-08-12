@@ -1,10 +1,10 @@
-# ska-rucio-extended-client
+# SKA Rucio Extended Client
 
 [[_TOC_]]
 
 ## Overview
 
-The rucio extended client builds upon the core functionality provided by the base Rucio client. Additional functionality 
+The Rucio extended client builds upon the core functionality provided by the base Rucio client. Additional functionality 
 includes:
 
 - Hierarchical data management (uploads and downloads)
@@ -41,7 +41,7 @@ eng@ubuntu:~/SKAO/ska-rucio-extended-client$ export PYTHONWARNINGS="ignore:Unver
 eng@ubuntu:~/SKAO/ska-rucio-extended-client$ python3 -m pip install .
 ```
 
-### Running in Docker (local)
+### Running in Docker (build locally)
 
 A Dockerfile is provided to build an image (Makefile target included) with the necessary packages pre-installed:
 
@@ -50,7 +50,7 @@ eng@ubuntu:~/SKAO/ska-rucio-extended-client$ make image
 eng@ubuntu:~/SKAO/ska-rucio-extended-client$ docker run -it --rm -e PYTHONWARNINGS="ignore:Unverified HTTPS request" -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=$ACCOUNT rucio-extended-client:`cat BASE_RUCIO_CLIENT_TAG`
 ```
 
-### Running in Docker (remote)
+### Running in Docker (pull image from remote)
 
 A pre-built image for this package is available at the container registry [here](https://gitlab.com/ska-telescope/src/ska-rucio-extended-client/container_registry). Simply substitute in the name and tag like so:
 
