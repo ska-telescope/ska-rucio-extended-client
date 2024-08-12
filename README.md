@@ -20,7 +20,7 @@ The recommended method is to use a docker container.
 To run the extended client natively the user must first install the base rucio client package. This can be done via pip:
 
 ```bash
-eng@ubuntu:~/SKAO$ python3 -m pip install rucio[clients]
+python3 -m pip install rucio[clients]
 ```
 
 Following this, they must create a [Rucio configuration file](https://gitlab.com/ska-telescope/src/src-dm/ska-src-dm-da-rucio-client/-/blob/master/etc/rucio/rucio.cfg.ska.j2)
