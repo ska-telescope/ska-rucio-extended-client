@@ -23,7 +23,7 @@ To run the extended client natively the user must first install the base rucio c
 eng@ubuntu:~/SKAO$ python3 -m pip install rucio[clients]
 ```
 
-Following this, they must create a [Rucio configuration file](https://gitlab.com/ska-telescope/src/ska-rucio-client/-/blob/master/etc/rucio/rucio.cfg.ska.j2)
+Following this, they must create a [Rucio configuration file](https://gitlab.com/ska-telescope/src/src-dm/ska-src-dm-da-rucio-client/-/blob/master/etc/rucio/rucio.cfg.ska.j2)
 as `/opt/rucio/etc/rucio.cfg`, taking care to set the authentication parameters:
 
 ```
@@ -31,14 +31,15 @@ rucio_host = https://path/to/rucio/host
 auth_host = https://path/to/auth/host
 auth_type = oidc
 account = <account_name>
+ca_cert = /path/to/rucio/server/ca/cert
 ```
 
 The extended client package can be then be installed natively by a local pip install:
 
 ```bash
-eng@ubuntu:~/SKAO$ git clone https://gitlab.com/ska-telescope/src/ska-rucio-extended-client.git && cd ska-rucio-extended-client
-eng@ubuntu:~/SKAO/ska-rucio-extended-client$ export PYTHONWARNINGS="ignore:Unverified HTTPS request" && export LANG="en_US.UTF-8"
-eng@ubuntu:~/SKAO/ska-rucio-extended-client$ python3 -m pip install .
+git clone https://gitlab.com/ska-telescope/src/ska-rucio-extended-client.git && cd ska-rucio-extended-client
+export LANG="en_US.UTF-8"
+python3 -m pip install .
 ```
 
 ### Running in Docker (build locally)
@@ -46,16 +47,17 @@ eng@ubuntu:~/SKAO/ska-rucio-extended-client$ python3 -m pip install .
 A Dockerfile is provided to build an image (Makefile target included) with the necessary packages pre-installed:
 
 ```bash
-eng@ubuntu:~/SKAO/ska-rucio-extended-client$ make image
-eng@ubuntu:~/SKAO/ska-rucio-extended-client$ docker run -it --rm -e PYTHONWARNINGS="ignore:Unverified HTTPS request" -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=$ACCOUNT rucio-extended-client:`cat BASE_RUCIO_CLIENT_TAG`
+make image
+docker run -it --rm -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=$ACCOUNT ska-rucio-extended-client:`cat BASE_SKA_RUCIO_CLIENT_TAG`
 ```
 
 ### Running in Docker (pull image from remote)
 
-A pre-built image for this package is available at the container registry [here](https://gitlab.com/ska-telescope/src/ska-rucio-extended-client/container_registry). Simply substitute in the name and tag like so:
+A pre-built image for this package is available at the container registry [here](https://gitlab.com/ska-telescope/src/src-dm/ska-src-dm-da-rucio-extended-client/container_registry).
 
+For example, to pull `release-1.29.6`:
 ```bash
-eng@ubuntu:~$ docker run -it --rm -e PYTHONWARNINGS="ignore:Unverified HTTPS request" -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=$ACCOUNT registry.gitlab.com/ska-telescope/src/ska-rucio-extended-client:release-1.29.0
+docker run -it --rm -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=$ACCOUNT registry.gitlab.com/ska-telescope/src/src-dm/ska-src-dm-da-rucio-extended-client:release-1.29.6
 ```
 
 ### Local development (containerised via pip w/ symlinks)
@@ -63,8 +65,8 @@ eng@ubuntu:~$ docker run -it --rm -e PYTHONWARNINGS="ignore:Unverified HTTPS req
 For development, create a new `devel` container with the source from the host volume mounted in, e.g. for a path `/home/eng/SKAO/ska-rucio-extended-client`:
 
 ```bash
-eng@ubuntu:~/SKAO/ska-rucio-extended-client$ make image-devel
-eng@ubuntu:~/SKAO/ska-rucio-extended-client$ docker run -it --rm -e PYTHONWARNINGS="ignore:Unverified HTTPS request" -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=$ACCOUNT -v /home/eng/SKAO/ska-rucio-extended-client:/opt/rucio-extended-client rucio-extended-client:`cat BASE_RUCIO_CLIENT_TAG`-devel
+make image-devel
+docker run -it --rm -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=$ACCOUNT -v /home/eng/SKAO/ska-rucio-extended-client:/opt/ska-rucio-extended-client ska-rucio-extended-client:`cat BASE_SKA_RUCIO_CLIENT_TAG`-devel
 ```
 
 If you want to attach to an existing Rucio **development** environment i.e. the one instantiated with `docker-compose`, remember to attach the extended client to the corresponding docker network and copy the `rucio.cfg` from the development client container to the extended client container.
