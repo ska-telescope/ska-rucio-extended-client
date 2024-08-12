@@ -13,7 +13,7 @@ test:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
   script:
     - docker build . -f Dockerfile.dev --build-arg BASE_SKA_RUCIO_CLIENT_IMAGE=registry.gitlab.com/ska-telescope/src/src-dm/ska-src-dm-da-rucio-client --build-arg BASE_SKA_RUCIO_CLIENT_TAG=$(cat BASE_SKA_RUCIO_CLIENT_TAG) --tag $CI_REGISTRY_IMAGE:$(cat BASE_SKA_RUCIO_CLIENT_TAG)
-    - docker run -t --rm registry.gitlab.com/ska-telescope/src/ska-rucio-extended-client:$(cat BASE_SKA_RUCIO_CLIENT_TAG) test/run_unittests.sh
+    - docker run -t --rm registry.gitlab.com/ska-telescope/src/src-dm/ska-src-dm-da-rucio-extended-client:$(cat BASE_SKA_RUCIO_CLIENT_TAG) test/run_unittests.sh
 
 push:
   image: docker:dind
