@@ -48,7 +48,7 @@ A Dockerfile is provided to build an image (Makefile target included) with the n
 
 ```bash
 make image
-docker run -it --rm -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=$ACCOUNT ska-rucio-extended-client:`cat BASE_SKA_RUCIO_CLIENT_TAG`
+docker run -it --rm -e LANG="en_US.UTF-8" -e RUCIO_CFG_CLIENT_ACCOUNT=$ACCOUNT ska-rucio-extended-client:`cat BASE_SKA_RUCIO_CLIENT_TAG`
 ```
 
 ### Running in Docker (pull image from remote)
@@ -57,7 +57,7 @@ A pre-built image for this package is available at the container registry [here]
 
 For example, to pull `release-1.29.6`:
 ```bash
-docker run -it --rm -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=$ACCOUNT registry.gitlab.com/ska-telescope/src/src-dm/ska-src-dm-da-rucio-extended-client:release-1.29.6
+docker run -it --rm -e LANG="en_US.UTF-8" -e RUCIO_CFG_CLIENT_ACCOUNT=$ACCOUNT registry.gitlab.com/ska-telescope/src/src-dm/ska-src-dm-da-rucio-extended-client:release-1.29.6
 ```
 
 ### Local development (containerised via pip w/ symlinks)
@@ -66,7 +66,7 @@ For development, create a new `devel` container with the source from the host vo
 
 ```bash
 make image-devel
-docker run -it --rm -e LANG="en_US.UTF-8" -e RUCIO_CFG_ACCOUNT=$ACCOUNT -v /home/eng/SKAO/ska-rucio-extended-client:/opt/ska-rucio-extended-client ska-rucio-extended-client:`cat BASE_SKA_RUCIO_CLIENT_TAG`-devel
+docker run -it --rm -e LANG="en_US.UTF-8" -e RUCIO_CFG_CLIENT_ACCOUNT=$ACCOUNT -v /home/eng/SKAO/ska-rucio-extended-client:/opt/ska-rucio-extended-client ska-rucio-extended-client:`cat BASE_SKA_RUCIO_CLIENT_TAG`-devel
 ```
 
 If you want to attach to an existing Rucio **development** environment i.e. the one instantiated with `docker-compose`, remember to attach the extended client to the corresponding docker network and copy the `rucio.cfg` from the development client container to the extended client container.
